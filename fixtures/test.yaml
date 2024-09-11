@@ -1,0 +1,6 @@
+log:
+  level: info
+  caller: false
+
+content: |
+  Hello, World!
