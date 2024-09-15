@@ -35,6 +35,11 @@ var testInfoParams = map[string]InfoParams{
 		build:      &debug.BuildInfo{},
 		expectInfo: info.New("", "", "", "", "", ""),
 	},
+	"invalid build info": {
+		info:       info.New("", "", "", "x", "x", "x"),
+		build:      &debug.BuildInfo{},
+		expectInfo: info.New("", "", "", "", "", "true"),
+	},
 
 	// Setup build info path.
 	"build info setup path": {
