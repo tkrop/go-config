@@ -190,7 +190,7 @@ func splitRuneN(s string, ch rune, n int) string {
 // swallowing errors.
 func TimeRFC3339Parse(t string) time.Time {
 	time, err := time.Parse(time.RFC3339, t)
-	if err != nil {
+	if err != nil && t != "" {
 		log.WithFields(log.Fields{
 			"time": t,
 		}).WithError(err).Error("parsing time")
@@ -202,7 +202,7 @@ func TimeRFC3339Parse(t string) time.Time {
 // the parsing fails. Else the parsed boolean value is returned.
 func DirtyParse(str string) bool {
 	dirty, err := strconv.ParseBool(str)
-	if err != nil {
+	if err != nil && str != "" {
 		log.WithFields(log.Fields{
 			"bool": str,
 		}).WithError(err).Error("parsing bool")
