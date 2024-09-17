@@ -21,13 +21,13 @@ var DefaultLogTimeFormat = time.RFC3339Nano[0:26]
 // Config common configuration for logging.
 type Config struct {
 	// Level is defining the logger level (default `info`).
-	Level string
+	Level string `default:"info"`
 	// TImeFormat is defining the logger time format.
-	TimeFormat string
+	TimeFormat string `default:"2006-01-02T15:04:05.999999"`
 	// Caller is defining whether the caller is logged (default `false`).
-	Caller bool
+	Caller bool `default:"false"`
 	// File is defining the file name for logger output.
-	File string
+	File string `default:"/dev/stderr"`
 }
 
 // Exported log types to be used in the application.

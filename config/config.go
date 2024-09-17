@@ -11,13 +11,14 @@ import (
 
 	"github.com/spf13/viper"
 	"github.com/tkrop/go-config/info"
+	"github.com/tkrop/go-config/internal/reflect"
 	"github.com/tkrop/go-config/log"
 )
 
 // Config common application configuration.
 type Config struct {
 	// Env contains the execution environment, e.g. local, prod, test.
-	Env string
+	Env string `default:"prod"`
 	// Info default build information.
 	Info *info.Info
 	// Log default logger setup.
@@ -65,8 +66,19 @@ func New[C any](
 		c.AddConfigPath(filepath)
 	}
 
-	// TODO: read default values from tags on config struct.
+	// Set default values from config type.
+	reflect.NewTagWalker("default", nil).
+		Walk(config, "", c.setConfigDefault)
+
 	return c
+}
+
+// setConfigDefault sets the default value for the given path using the default
+// tag value.
+func (c *ConfigReader[C]) setConfigDefault(
+	_ reflect.Value, path, tag string,
+) {
+	c.SetDefault(path, tag)
 }
 
 // SetDefaults is a convenience method to configure the reader with defaults
@@ -75,8 +87,6 @@ func New[C any](
 func (c *ConfigReader[C]) SetDefaults(
 	setup func(*ConfigReader[C]),
 ) *ConfigReader[C] {
-	c.SetDefault("env", "prod")
-
 	info := info.GetDefault()
 	c.SetDefault("info.path", info.Path)
 	c.SetDefault("info.version", info.Version)
@@ -86,10 +96,7 @@ func (c *ConfigReader[C]) SetDefaults(
 	c.SetDefault("info.dirty", info.Dirty)
 	c.SetDefault("info.go", info.Go)
 	c.SetDefault("info.platform", info.Platform)
-
-	c.SetDefault("log.level", log.DefaultLogLevel)
-	c.SetDefault("log.timeformat", log.DefaultLogTimeFormat)
-	c.SetDefault("log.caller", log.DefaultLogCaller)
+	c.SetDefault("info.compiler", info.Compiler)
 
 	if setup != nil {
 		setup(c)
