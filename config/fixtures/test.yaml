@@ -2,5 +2,8 @@ log:
   level: info
   caller: false
 
+info:
+  path: github.com/tkrop/go-config
+
 content: |
   Hello, World!

@@ -71,7 +71,7 @@ type Config struct {
 ```
 
 As usual in [Viper][viper], you can now create your config using the reader
-that allows to create multiple configuration while applying the default setup
+that allows creating multiple configuration while applying the default setup
 mechanisms using the following convenience functions:
 
 ```go
@@ -86,16 +86,31 @@ mechanisms using the following convenience functions:
 The defaults provided have via different options are overwriting each other in
 the following order:
 
-1. First the values provided via the `default`-tags are applied.
-2. Second the values provided by [Viper][viper] setup calls are applied.
-3. Third the values provided in the `<app>[-env].yaml`-file are applied.
-4. And finally the values provided via environment variables are applied
+1. First, the values provided via the `default`-tags are applied.
+2. Second the values provided by the config prototype instance are applied.
+3. Third the values provided by [Viper][viper] custom setup calls are applied.
+   This also includes the convenient methods provided in this package.
+4. Forth the values provided in the `<app>[-env].yaml`-file are applied.
+5. And finally the values provided via environment variables are applied
    taking the highest precedence.
 
 **Note**: While yo declare the reader with a default config structure, it is
 still possible to customize the reader arbitrarily, e.g. with flag support, and
 setup any other config structure by using the original [Viper][viper] interface
 functions.
+
+A special feature provided by `go-config` is to set up the defaults using a
+partial or complete prototype config. You can provide a complete prototype in
+the `New` constructor as well as any sub-prototype in the `SetSubDefaults`
+method as follows:
+
+```go
+    reader := config.New("<PREFIX>", "<app-name>", &config.Config{
+            Env: "prod",
+        }).SetSubDefaults("<sub-path>", &log.Config{
+            Level: "debug",
+        }, false).
+```
 
 
 ## Logger setup
