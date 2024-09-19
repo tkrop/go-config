@@ -15,8 +15,8 @@ func TestReadConfig(t *testing.T) {
 
 	// Given
 	reader := config.New("TC", "test", &config.Config{}).
-		SetDefaults(func(c *config.ConfigReader[config.Config]) {
-			c.AddConfigPath("../fixtures")
+		SetDefaults(func(c *config.Reader[config.Config]) {
+			c.AddConfigPath("fixtures")
 		})
 
 	// When
@@ -29,6 +29,7 @@ func TestReadConfig(t *testing.T) {
 
 func TestReadConfig_UnmarshalFailure(t *testing.T) {
 	t.Parallel()
+
 	type Config struct {
 		config.Config `mapstructure:",squash"`
 		Content       int
@@ -37,8 +38,8 @@ func TestReadConfig_UnmarshalFailure(t *testing.T) {
 	// Given
 	defer func() { _ = recover() }()
 	reader := config.New("TC", "test", &Config{}).
-		SetDefaults(func(c *config.ConfigReader[Config]) {
-			c.AddConfigPath("../fixtures")
+		SetDefaults(func(c *config.Reader[Config]) {
+			c.AddConfigPath("fixtures")
 		})
 
 	// When
@@ -53,8 +54,8 @@ func TestReadConfig_FileNotFound(t *testing.T) {
 	defer func() { _ = recover() }()
 	t.Setenv("TC_ENV", "other")
 	reader := config.New("TC", "test", &config.Config{}).
-		SetDefaults(func(c *config.ConfigReader[config.Config]) {
-			c.AddConfigPath("../fixtures")
+		SetDefaults(func(c *config.Reader[config.Config]) {
+			c.AddConfigPath("fixtures")
 		})
 
 	// When
@@ -68,8 +69,8 @@ func TestReadConfig_OverridingEnv(t *testing.T) {
 	// Given
 	t.Setenv("TC_LOG_LEVEL", "trace")
 	reader := config.New("TC", "test", &config.Config{}).
-		SetDefaults(func(c *config.ConfigReader[config.Config]) {
-			c.AddConfigPath("../fixtures")
+		SetDefaults(func(c *config.Reader[config.Config]) {
+			c.AddConfigPath("fixtures")
 		})
 
 	// When
@@ -85,7 +86,7 @@ func TestReadConfig_OverridingFunc(t *testing.T) {
 
 	// Given
 	reader := config.New("TC", "test", &config.Config{}).
-		SetDefaults(func(c *config.ConfigReader[config.Config]) {
+		SetDefaults(func(c *config.Reader[config.Config]) {
 			c.SetDefault("log.level", "trace")
 		})
 

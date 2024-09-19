@@ -10,16 +10,15 @@ import (
 	"github.com/tkrop/go-testing/test"
 )
 
-type setupLoggingParams struct {
-	logger           *log.Logger
+type setupParams struct {
 	config           *log.Config
 	expectTimeFormat string
 	expectLogLevel   string
 	expectLogCaller  bool
 }
 
-var testSetupLoggingParams = map[string]setupLoggingParams{
-	"read default log config to std logger": {
+var testSetupParams = map[string]setupParams{
+	"read default log config no logger": {
 		config:           &log.Config{},
 		expectLogLevel:   log.DefaultLogLevel,
 		expectTimeFormat: log.DefaultLogTimeFormat,
@@ -27,7 +26,6 @@ var testSetupLoggingParams = map[string]setupLoggingParams{
 	},
 
 	"read default log config": {
-		logger:           log.New(),
 		config:           &log.Config{},
 		expectLogLevel:   log.DefaultLogLevel,
 		expectTimeFormat: log.DefaultLogTimeFormat,
@@ -35,25 +33,33 @@ var testSetupLoggingParams = map[string]setupLoggingParams{
 	},
 
 	"change log level debug": {
-		logger: log.New(),
 		config: &log.Config{
 			Level: "debug",
 		},
 		expectLogLevel:   "debug",
 		expectTimeFormat: log.DefaultLogTimeFormat,
+		expectLogCaller:  log.DefaultLogCaller,
+	},
+
+	"invalid log level debug": {
+		config: &log.Config{
+			Level: "detail",
+		},
+		expectLogLevel:   "info",
+		expectTimeFormat: log.DefaultLogTimeFormat,
+		expectLogCaller:  log.DefaultLogCaller,
 	},
 
 	"change time format date": {
-		logger: log.New(),
 		config: &log.Config{
 			TimeFormat: "2024-12-31",
 		},
 		expectLogLevel:   log.DefaultLogLevel,
 		expectTimeFormat: "2024-12-31",
+		expectLogCaller:  log.DefaultLogCaller,
 	},
 
 	"change caller to true": {
-		logger: log.New(),
 		config: &log.Config{
 			Caller: true,
 		},
@@ -63,26 +69,34 @@ var testSetupLoggingParams = map[string]setupLoggingParams{
 	},
 }
 
-func TestSetupLogging(t *testing.T) {
-	test.Map(t, testSetupLoggingParams).
-		Run(func(t test.Test, param setupLoggingParams) {
+func TestSetup(t *testing.T) {
+	test.Map(t, testSetupParams).
+		Run(func(t test.Test, param setupParams) {
 			// Given
-			config.New("TEST", "test", &config.Config{}).
-				SetDefaults(func(c *config.ConfigReader[config.Config]) {
-					c.AddConfigPath("../fixtures")
-				}).LoadConfig(t.Name()).Log.Setup(param.logger)
+			logger := log.New()
+			config := config.New("TEST", "test", &config.Config{}).
+				SetSubDefaults("log", param.config, false).
+				GetConfig(t.Name())
 
 			// When
-			param.config.Setup(param.logger)
+			config.Log.Setup(logger)
 
 			// Then
-			logger := param.logger
-			if logger == nil {
-				logger = log.StandardLogger()
-			}
 			assert.Equal(t, param.expectTimeFormat,
 				logger.Formatter.(*log.TextFormatter).TimestampFormat)
 			assert.Equal(t, param.expectLogLevel, logger.GetLevel().String())
 			assert.Equal(t, param.expectLogCaller, logger.ReportCaller)
 		})
+}
+
+func TestSetupNil(t *testing.T) {
+	// Given
+	config := config.New("TEST", "test", &config.Config{}).
+		GetConfig(t.Name())
+
+	// When
+	config.Log.Setup(nil)
+
+	// Then
+	assert.True(t, true)
 }
