@@ -47,35 +47,45 @@
 
 ## Introduction
 
-Goal of `go-config` is to provide an easy and extensible config framework with
-fluent interface based on [Viper][viper] supporting simple default tags for
-standard services, jobs, and commands.
+Goal of [`go-config`][go-config] is to provide an easy to use and extensible
+config framework with fluent interface based on [Viper][viper] for services,
+jobs, and commands. It is supporting simple `default`-tags and prototype
+config to set up and change the reader defaults quickly.
 
-[viper]: https://github.com/spf13/viper
+[viper]: <https://github.com/spf13/viper>
+[go-config]: <https://github.com/tkrop/go-config>
 
 
 ## How to start
 
-To start with `go-config` you simply create your config as an extension of the
-config provided in this package as follows:
+In [`go-config`][go-config] you simply create your config as an extension of
+the config provided in this package as a base line as follows:
 
 ```go
 // Config root element for configuration.
 type Config struct {
     config.Config `mapstructure:",squash"`
 
-    String string `default:"my-value"`
     Int int       `default:"31"`
-    Dur Duration  `default:"1m"` 
+    String string `default:"my-value"`
+    Dur Duration  `default:"1m"`
+
+    Service *my.ServiceConfig
 }
 ```
 
-As usual in [Viper][viper], you can now create your config using the reader
-that allows creating multiple configuration while applying the default setup
-mechanisms using the following convenience functions:
+**Note:**  [`go-config`][go-config] makes it very simple to reuse the simple
+config `struct`s provided by other libraries and components, since you can
+easily create any hierarchy of `struct`s, `slice`s, and even `map[string]`s
+containing native types, based on `int`, `float`, `byte`, `rune`, `complex`,
+and `string`. You can also use `time.Time` and `time.Duration`.
+
+As usual in [Viper][viper], you can create your config using the reader that
+allows creating multiple configs while applying the setup mechanisms for
+defaults using the following convenience functions:
 
 ```go
-    reader := config.New("<PREFIX>", "<app-name>", &Config{}).
+    reader := config.New("<prefix>", "<app-name>", &Config{}).
         SetDefaults(func(c *config.ConfigReader[config.Config]{
             c.SetDefault("int", 32)
         }).ReadConfig("main")
@@ -83,14 +93,18 @@ mechanisms using the following convenience functions:
     config := reader.GetConfig("main")
 ```
 
-The defaults provided have via different options are overwriting each other in
+This creates a standard config reader with defaults from the given config
+prototype reading in additional defaults from the `<app-name>[-env].yaml`-file
+and environment variables.
+
+The defaults provided by the different options are overwriting each other in
 the following order:
 
 1. First, the values provided via the `default`-tags are applied.
 2. Second the values provided by the config prototype instance are applied.
 3. Third the values provided by [Viper][viper] custom setup calls are applied.
    This also includes the convenient methods provided in this package.
-4. Forth the values provided in the `<app>[-env].yaml`-file are applied.
+4. Forth the values provided in the `<app-name>[-env].yaml`-file are applied.
 5. And finally the values provided via environment variables are applied
    taking the highest precedence.
 
@@ -99,13 +113,13 @@ still possible to customize the reader arbitrarily, e.g. with flag support, and
 setup any other config structure by using the original [Viper][viper] interface
 functions.
 
-A special feature provided by `go-config` is to set up the defaults using a
-partial or complete prototype config. You can provide a complete prototype in
-the `New` constructor as well as any sub-prototype in the `SetSubDefaults`
-method as follows:
+A special feature provided by [`go-config`][go-config] is to set up the
+defaults using a partial or complete config prototype. While you must provide a
+complete prototype in the `New` constructor, you can provide any sub-prototype
+in the `SetSubDefaults` method as follows:
 
 ```go
-    reader := config.New("<PREFIX>", "<app-name>", &config.Config{
+    reader := config.New("<prefix>", "<app-name>", &config.Config{
             Env: "prod",
         }).SetSubDefaults("<sub-path>", &log.Config{
             Level: "debug",
@@ -115,11 +129,11 @@ method as follows:
 
 ## Logger setup
 
-The `go-config` framework als supports to set up a [logrus][logrus] Logger
-out-of-the-box using configured defaults as follows:
+The [`go-config`][go-config] framework supports to set up a [logrus][logrus]
+`Logger`_out-of-the-box as follows:
 
 ```go
-    config := config.New("<PREFIX>", "<app-name>", &Config{}).
+    config := config.New("<prefix>", "<app-name>", &Config{}).
         LoadConfig("main")
 
     logger := config.Log.Setup(log.New())
@@ -132,10 +146,11 @@ If no logger is provided, the standard logger is configured and returned.
 
 ## Build info
 
-Finally, the `go-config` framework also supports in conjunction with
-`go-make` a build information to track and access the origin of a command,
-service or job. However, the build information must be manually enabled
-by adding the following variable set to the `main.go` file.
+Finally, [`go-config`][go-config] in conjunction with [`go-make`][go-make]
+supports a build information to track and access the origin of a command,
+service or job. While the build information is also auto-discovered, a full
+[`go-make`][go-make] integration provides the following variables in the
+`main.go`-file.
 
 ```go
 // Build information variables set by `go-make`.
@@ -155,12 +170,18 @@ var (
 )
 ```
 
-In addition, you have to set up the build information in config reader by
-utilizing the variables as follows:
+You can now use this information to set up the default build information in
+the config reader by using `SetInfo` during creation as follows:
 
 ```go
 func main() {
-    reader := config.New("<PREFIX>", "<app-name>", &Config{}).
+    reader := config.New("<prefix>", "<app-name>", &Config{}).
         SetInfo(info.New(Path, Version, Build, Revision, Commit, Dirty)).
 }
 ```
+
+If you don't want to use [`go-make`][go-make], you can provide the variable
+defaults in the `-ldflags="-X main.Path=... -X main.Version=... ...` manually
+during your build.
+
+[go-make]: <https://github.com/tkrop/go-make>
