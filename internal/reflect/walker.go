@@ -153,7 +153,7 @@ func isStruct(field reflect.StructField) bool {
 // key is the default key building function. It concatenates the current key
 // with the field name separated by a dot `.`. If the key is empty, the field
 // name is used as base key.
-func (w *TagWalker) key(key, name string) string {
+func (*TagWalker) key(key, name string) string {
 	if key != "" {
 		return key + "." + strings.ToLower(name)
 	}

@@ -3,10 +3,9 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
-	"path"
-	"runtime"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -16,6 +15,15 @@ import (
 	"github.com/tkrop/go-config/log"
 )
 
+// ErrConfig is a common error to indicate a configuration error.
+var ErrConfig = errors.New("config")
+
+// NewErrConfig is a convenience method to create a new config error with the
+// given context wrapping the original error.
+func NewErrConfig(message, context string, err error) error {
+	return fmt.Errorf("%w - %s [%s]: %w", ErrConfig, message, context, err)
+}
+
 // Config common application configuration.
 type Config struct {
 	// Env contains the execution environment, e.g. local, prod, test.
@@ -24,6 +32,13 @@ type Config struct {
 	Info *info.Info
 	// Log default logger setup.
 	Log *log.Config
+}
+
+// SetupLogger is a convenience method to setup the logger.
+func (c *Config) SetupLogger(logger *log.Logger) *Config {
+	c.Log.Setup(logger)
+
+	return c
 }
 
 // Reader common config reader based on viper.
@@ -36,8 +51,7 @@ type Reader[C any] struct {
 // with the environment specific suffix for loading the config file in `yaml`
 // format.
 func GetEnvName(prefix string, name string) string {
-	env := strings.ToLower(os.Getenv(prefix + "_ENV"))
-	if env != "" {
+	if env := strings.ToLower(os.Getenv(prefix + "_ENV")); env != "" {
 		return fmt.Sprintf("%s-%s", name, env)
 	}
 	return name
@@ -54,21 +68,14 @@ func New[C any](
 		Viper: viper.New(),
 	}
 
+	r.AutomaticEnv()
+	r.AllowEmptyEnv(true)
+	r.SetEnvPrefix(prefix)
+	r.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	r.SetConfigName(GetEnvName(prefix, name))
 	r.SetConfigType("yaml")
 	r.AddConfigPath(".")
-	r.SetEnvPrefix(prefix)
-	r.AutomaticEnv()
-	r.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	r.AllowEmptyEnv(true)
-
 	r.SetSubDefaults("", config, true)
-
-	// Determine parent directory of this code file.
-	if _, filename, _, ok := runtime.Caller(1); ok {
-		filepath := path.Join(path.Dir(filename), "../..")
-		r.AddConfigPath(filepath)
-	}
 
 	return r
 }
@@ -122,13 +129,16 @@ func (r *Reader[C]) SetDefault(key string, value any) {
 
 // ReadConfig is a convenience method to read the environment specific config
 // file to extend the default config. The context is used to distinguish
-// different calls in case of a panic by failures while loading the config
-// file.
+// different calls in case of a failure loading the config file.
 func (r *Reader[C]) ReadConfig(context string) *Reader[C] {
-	err := r.ReadInConfig()
-	if err != nil {
-		log.WithError(err).Errorf("failed to load config [%s]", context)
-		panic(fmt.Errorf("failed to load config [%s]: %w", context, err))
+	if err := r.ReadInConfig(); err != nil {
+		err := NewErrConfig("loading file", context, err)
+		log.WithFields(log.Fields{
+			"context": context,
+		}).WithError(err).Warn("no config file found")
+		if r.GetBool("viper.panic.load") {
+			panic(err)
+		}
 	}
 
 	return r
@@ -140,23 +150,28 @@ func (r *Reader[C]) ReadConfig(context string) *Reader[C] {
 // the config.
 func (r *Reader[C]) GetConfig(context string) *C {
 	config := new(C)
-	err := r.Unmarshal(config)
-	if err != nil {
-		log.WithError(err).Errorf("failed to unmarshal config [%s]", context)
-		panic(fmt.Errorf("failed to unmarshal config [%s]: %w", context, err))
+	if err := r.Unmarshal(config); err != nil {
+		err := NewErrConfig("unmarshal config", context, err)
+		log.WithFields(log.Fields{
+			"context": context,
+		}).WithError(err).Error("unmarshal config")
+		if r.GetBool("viper.panic.unmarshal") {
+			panic(err)
+		}
 	}
 
 	log.WithFields(log.Fields{
-		"config": config,
-	}).Debugf("config loaded [%s]", context)
+		"context": context,
+		"config":  config,
+	}).Debugf("config loaded")
 
 	return config
 }
 
 // LoadConfig is a convenience method to load the environment specific config
 // file and returns the config. The context is used to distinguish different
-// calls in case of a panic created by failures while loading the config file
-// and umarshalling the config.
+// calls in case of a panic created by failures loading the config file or
+// umarshalling the config.
 func (r *Reader[C]) LoadConfig(context string) *C {
 	return r.ReadConfig(context).GetConfig(context)
 }
