@@ -2,6 +2,7 @@ package log_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -9,6 +10,16 @@ import (
 	"github.com/tkrop/go-config/log"
 	"github.com/tkrop/go-testing/test"
 )
+
+const (
+	// Default log level in configuration.
+	DefaultLogLevel = "info"
+	// Default report caller flag in configuration.
+	DefaultLogCaller = false
+)
+
+// DefaultLogTimeFormat contains the default timestamp format.
+var DefaultLogTimeFormat = time.RFC3339Nano[0:26]
 
 type setupParams struct {
 	config           *log.Config
@@ -20,16 +31,16 @@ type setupParams struct {
 var testSetupParams = map[string]setupParams{
 	"read default log config no logger": {
 		config:           &log.Config{},
-		expectLogLevel:   log.DefaultLogLevel,
-		expectTimeFormat: log.DefaultLogTimeFormat,
-		expectLogCaller:  log.DefaultLogCaller,
+		expectLogLevel:   DefaultLogLevel,
+		expectTimeFormat: DefaultLogTimeFormat,
+		expectLogCaller:  DefaultLogCaller,
 	},
 
 	"read default log config": {
 		config:           &log.Config{},
-		expectLogLevel:   log.DefaultLogLevel,
-		expectTimeFormat: log.DefaultLogTimeFormat,
-		expectLogCaller:  log.DefaultLogCaller,
+		expectLogLevel:   DefaultLogLevel,
+		expectTimeFormat: DefaultLogTimeFormat,
+		expectLogCaller:  DefaultLogCaller,
 	},
 
 	"change log level debug": {
@@ -37,8 +48,8 @@ var testSetupParams = map[string]setupParams{
 			Level: "debug",
 		},
 		expectLogLevel:   "debug",
-		expectTimeFormat: log.DefaultLogTimeFormat,
-		expectLogCaller:  log.DefaultLogCaller,
+		expectTimeFormat: DefaultLogTimeFormat,
+		expectLogCaller:  DefaultLogCaller,
 	},
 
 	"invalid log level debug": {
@@ -46,25 +57,25 @@ var testSetupParams = map[string]setupParams{
 			Level: "detail",
 		},
 		expectLogLevel:   "info",
-		expectTimeFormat: log.DefaultLogTimeFormat,
-		expectLogCaller:  log.DefaultLogCaller,
+		expectTimeFormat: DefaultLogTimeFormat,
+		expectLogCaller:  DefaultLogCaller,
 	},
 
 	"change time format date": {
 		config: &log.Config{
 			TimeFormat: "2024-12-31",
 		},
-		expectLogLevel:   log.DefaultLogLevel,
+		expectLogLevel:   DefaultLogLevel,
 		expectTimeFormat: "2024-12-31",
-		expectLogCaller:  log.DefaultLogCaller,
+		expectLogCaller:  DefaultLogCaller,
 	},
 
 	"change caller to true": {
 		config: &log.Config{
 			Caller: true,
 		},
-		expectLogLevel:   log.DefaultLogLevel,
-		expectTimeFormat: log.DefaultLogTimeFormat,
+		expectLogLevel:   DefaultLogLevel,
+		expectTimeFormat: DefaultLogTimeFormat,
 		expectLogCaller:  true,
 	},
 }
@@ -79,7 +90,7 @@ func TestSetup(t *testing.T) {
 				GetConfig(t.Name())
 
 			// When
-			config.Log.Setup(logger)
+			config.SetupLogger(logger)
 
 			// Then
 			assert.Equal(t, param.expectTimeFormat,
@@ -95,7 +106,7 @@ func TestSetupNil(t *testing.T) {
 		GetConfig(t.Name())
 
 	// When
-	config.Log.Setup(nil)
+	config.SetupLogger(nil)
 
 	// Then
 	assert.True(t, true)

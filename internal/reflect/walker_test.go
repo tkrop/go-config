@@ -8,7 +8,11 @@ import (
 	"github.com/tkrop/go-testing/test"
 )
 
+//revive:disable:line-length-limit // go generate line length.
+
 //go:generate mockgen -package=reflect_test -destination=mock_callback_test.go -source=walker_test.go Callback
+
+//revive:enable:line-length-limit
 
 // Callback is a mock interface for testing.
 type Callback interface {
@@ -30,6 +34,8 @@ type tagWalkerParam struct {
 	zero   bool
 	expect mock.SetupFunc
 }
+
+//revive:disable:nested-structs // simplifies test cases a lot.
 
 // testTagWalkerParams contains test cases for TagWalker.Walk.
 var testTagWalkerParams = map[string]tagWalkerParam{

@@ -3,20 +3,8 @@
 package log
 
 import (
-	"time"
-
 	log "github.com/sirupsen/logrus"
 )
-
-const (
-	// Default log level in configuration.
-	DefaultLogLevel = "info"
-	// Default report caller flag in configuration.
-	DefaultLogCaller = false
-)
-
-// DefaultLogTimeFormat contains the default timestamp format.
-var DefaultLogTimeFormat = time.RFC3339Nano[0:26]
 
 // Config common configuration for logging.
 type Config struct {
@@ -50,6 +38,8 @@ type (
 	// JSONFormatter is the logrus JSON formatter.
 	JSONFormatter = log.JSONFormatter
 )
+
+//revive:disable:max-public-structs // export log types
 
 // Exported log functions to be used in the application.
 var (
@@ -140,6 +130,21 @@ var (
 	Panic = log.Panic
 	// Fatal logs a message at level Fatal.
 	Fatal = log.Fatal
+
+	// TraceLevel is the log level Trace.
+	TraceLevel = log.TraceLevel
+	// DebugLevel is the log level Debug.
+	DebugLevel = log.DebugLevel
+	// InfoLevel is the log level Info.
+	InfoLevel = log.InfoLevel
+	// WarnLevel is the log level Warn.
+	WarnLevel = log.WarnLevel
+	// ErrorLevel is the log level Error.
+	ErrorLevel = log.ErrorLevel
+	// PanicLevel is the log level Panic.
+	PanicLevel = log.PanicLevel
+	// FatalLevel is the log level Fatal.
+	FatalLevel = log.FatalLevel
 )
 
 // Setup is setting up the given logger using. It sets the formatter, the log

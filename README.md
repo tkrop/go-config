@@ -62,6 +62,9 @@ In [`go-config`][go-config] you simply create your config as an extension of
 the config provided in this package as a base line as follows:
 
 ```go
+// Import for config prototype and config reader.
+import "github.com/tkrop/go-config/config"
+
 // Config root element for configuration.
 type Config struct {
     config.Config `mapstructure:",squash"`
@@ -130,11 +133,10 @@ in the `SetSubDefaults` method as follows:
 ## Logger setup
 
 The [`go-config`][go-config] framework supports to set up a [logrus][logrus]
-`Logger`_out-of-the-box as follows:
+`Logger`_out-of-the-box using the following two approaches:
 
 ```go
-    config := config.New("<prefix>", "<app-name>", &Config{}).
-        LoadConfig("main")
+    config := config.SetupLogger(logger)
 
     logger := config.Log.Setup(log.New())
 ```
