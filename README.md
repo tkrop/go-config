@@ -137,7 +137,6 @@ The [`go-config`][go-config] framework supports to set up a [logrus][logrus]
 
 ```go
     logger := config.SetupLogger(log.New())
-
     logger := config.Log.Setup(log.New())
 ```
 
