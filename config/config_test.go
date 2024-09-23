@@ -91,7 +91,7 @@ func TestConfig(t *testing.T) {
 			if param.setenv != nil {
 				param.setenv(t)
 			}
-			reader := config.New("TC", "test", &config.Config{}).
+			reader := config.New[config.Config]("TC", "test").
 				SetDefaults(param.setup)
 
 			// When
@@ -108,7 +108,7 @@ func TestSetupLogger(t *testing.T) {
 
 	// Given
 	logger := log.New()
-	config := config.New("TC", "test", &config.Config{}).
+	config := config.New[config.Config]("TC", "test").
 		SetDefaults(func(r *config.Reader[config.Config]) {
 			r.AddConfigPath("fixtures")
 			r.SetDefault("log.level", "trace")

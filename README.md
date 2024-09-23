@@ -136,7 +136,7 @@ The [`go-config`][go-config] framework supports to set up a [logrus][logrus]
 `Logger`_out-of-the-box using the following two approaches:
 
 ```go
-    config := config.SetupLogger(logger)
+    logger := config.SetupLogger(log.New())
 
     logger := config.Log.Setup(log.New())
 ```
