@@ -85,7 +85,7 @@ func TestSetup(t *testing.T) {
 		Run(func(t test.Test, param setupParams) {
 			// Given
 			logger := log.New()
-			config := config.New("TEST", "test", &config.Config{}).
+			config := config.New[config.Config]("TEST", "test").
 				SetSubDefaults("log", param.config, false).
 				GetConfig(t.Name())
 
@@ -102,7 +102,7 @@ func TestSetup(t *testing.T) {
 
 func TestSetupNil(t *testing.T) {
 	// Given
-	config := config.New("TEST", "test", &config.Config{}).
+	config := config.New[config.Config]("TEST", "test").
 		GetConfig(t.Name())
 
 	// When

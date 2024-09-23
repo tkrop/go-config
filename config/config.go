@@ -35,10 +35,8 @@ type Config struct {
 }
 
 // SetupLogger is a convenience method to setup the logger.
-func (c *Config) SetupLogger(logger *log.Logger) *Config {
-	c.Log.Setup(logger)
-
-	return c
+func (c *Config) SetupLogger(logger *log.Logger) *log.Logger {
+	return c.Log.Setup(logger)
 }
 
 // Reader common config reader based on viper.
@@ -62,7 +60,7 @@ func GetEnvName(prefix string, name string) string {
 // config values to initialize the map. The `default` tags are only used, if
 // the config values are zero.
 func New[C any](
-	prefix, name string, config *C,
+	prefix, name string,
 ) *Reader[C] {
 	r := &Reader[C]{
 		Viper: viper.New(),
@@ -75,7 +73,7 @@ func New[C any](
 	r.SetConfigName(GetEnvName(prefix, name))
 	r.SetConfigType("yaml")
 	r.AddConfigPath(".")
-	r.SetSubDefaults("", config, true)
+	r.SetSubDefaults("", new(C), true)
 
 	return r
 }
