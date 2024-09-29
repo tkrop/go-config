@@ -64,9 +64,9 @@ var testConfigParams = map[string]testConfigParam{
 			r.SetDefault("viper.panic.load", true)
 		},
 		expect: test.Panic(config.NewErrConfig("loading file", "test",
-			test.Error(viper.ConfigFileNotFoundError{}).Set("name", "test").
+			test.NewBuilder[viper.ConfigFileNotFoundError]().
 				Set("locations", fmt.Sprintf("%s", configPaths)).
-				Get("").(error))),
+				Set("name", "test").Get("").(error))),
 	},
 
 	"panic after unmarschal failure": {
