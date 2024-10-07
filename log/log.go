@@ -3,176 +3,112 @@
 package log
 
 import (
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
+
+	"github.com/tkrop/go-config/log/format"
 )
 
 // Config common configuration for logging.
 type Config struct {
 	// Level is defining the logger level (default `info`).
 	Level string `default:"info"`
-	// TImeFormat is defining the logger time format.
+	// TImeFormat is defining the time format for timestamps.
 	TimeFormat string `default:"2006-01-02T15:04:05.999999"`
 	// Caller is defining whether the caller is logged (default `false`).
 	Caller bool `default:"false"`
-	// File is defining the file name for logger output.
+	// File is defining the file name used for the log output.
 	File string `default:"/dev/stderr"`
+	// ColorMode is defining the color mode used for logging.
+	ColorMode format.ColorModeString `default:"auto"`
+	// OrderMode is defining the order mode used for logging.
+	OrderMode format.OrderModeString `default:"on"`
+	// Formatter is defining the formatter used for logging.
+	Formatter format.Formatter `default:"pretty"`
 }
 
-// Exported log types to be used in the application.
-type (
-	// Logger is the logrus logger.
-	Logger = log.Logger
-	// Entry is the logrus entry.
-	Entry = log.Entry
-	// Fields is the logrus fields.
-	Fields = log.Fields
-	// Level is the logrus level.
-	Level = log.Level
-	// Hook is the logrus hook.
-	Hook = log.Hook
+// ColorMode is the color mode used for logging.
+type ColorModeString format.ColorModeString
 
-	// Formatter is the logrus formatter.
-	Formatter = log.Formatter
-	// TextFormatter is the logrus text formatter.
-	TextFormatter = log.TextFormatter
-	// JSONFormatter is the logrus JSON formatter.
-	JSONFormatter = log.JSONFormatter
+// Color modes.
+const (
+	// ColorOff disables the color mode.
+	ColorOff format.ColorModeString = format.ColorModeOff
+	// ColorOn enables the color mode.
+	ColorOn format.ColorModeString = format.ColorModeOn
+	// ColorAuto enables the automatic color mode.
+	ColorAuto format.ColorModeString = format.ColorModeAuto
+	// ColorLevels enables the color mode for log level.
+	ColorLevels format.ColorModeString = format.ColorModeLevels
+	// ColorFields enables the color mode for fields.
+	ColorFields format.ColorModeString = format.ColorModeFields
 )
 
-//revive:disable:max-public-structs // export log types
+// OrderMode is the order mode used for logging.
+type OrderModeString format.OrderModeString
 
-// Exported log functions to be used in the application.
-var (
-	// New creates a new logger.
-	New = log.New
-	// StandardLogger returns the standard logger.
-	StandardLogger = log.StandardLogger
-	// ParseLevel parses a log level.
-	ParseLevel = log.ParseLevel
-	// GetLevel returns the current log level.
-	GetLevel = log.GetLevel
-	// SetLevel sets the log level of the logger.
-	SetLevel = log.SetLevel
-	// IsLevelEnabled checks if the log level is enabled.
-	IsLevelEnabled = log.IsLevelEnabled
-
-	// SetOutput sets the output of the logger.
-	SetOutput = log.SetOutput
-	// SetFormatter sets the formatter of the logger.
-	SetFormatter = log.SetFormatter
-	// SetReportCaller sets the report caller flag of the logger.
-	SetReportCaller = log.SetReportCaller
-	// AddHook adds a hook to the logger.
-	AddHook = log.AddHook
-
-	// WithTime adds the current time to the entry.
-	WithTime = log.WithTime
-	// WithContext adds the context to the entry.
-	WithContext = log.WithContext
-	// WithError adds the error to the entry.
-	WithError = log.WithError
-	// WithField adds a field to the entry.
-	WithField = log.WithField
-	// WithFields adds fields to the entry.
-	WithFields = log.WithFields
-
-	// Tracef logs a message at level Trace.
-	Tracef = log.Tracef
-	// Debugf logs a message at level Debug.
-	Debugf = log.Debugf
-	// Infof logs a message at level Info.
-	Infof = log.Infof
-	// Printf logs a message at level Info.
-	Printf = log.Printf
-	// Warnf logs a message at level Warn.
-	Warnf = log.Warnf
-	// Warningf logs a message at level Warn.
-	Warningf = log.Warningf
-	// Errorf logs a message at level Error.
-	Errorf = log.Errorf
-	// Fatalf logs a message at level Fatal.
-	Fatalf = log.Fatalf
-
-	// Traceln logs a message at level Trace.
-	Traceln = log.Traceln
-	// Debugln logs a message at level Debug.
-	Debugln = log.Debugln
-	// Infoln logs a message at level Info.
-	Infoln = log.Infoln
-	// Println logs a message at level Info.
-	Println = log.Println
-	// Warnln logs a message at level Warn.
-	Warnln = log.Warnln
-	// Warningln logs a message at level Warn.
-	Warningln = log.Warningln
-	// Errorln logs a message at level Error.
-	Errorln = log.Errorln
-	// Panicln logs a message at level Panic.
-	Panicln = log.Panicln
-	// Fatalln logs a message at level Fatal.
-	Fatalln = log.Fatalln
-
-	// Trace logs a message at level Trace.
-	Trace = log.Trace
-	// Debug logs a message at level Debug.
-	Debug = log.Debug
-	// Info logs a message at level Info.
-	Info = log.Info
-	// Print logs a message at level Info.
-	Print = log.Print
-	// Warn logs a message at level Warn.
-	Warn = log.Warn
-	// Warning logs a message at level Warn.
-	Warning = log.Warning
-	// Error logs a message at level Error.
-	Error = log.Error
-	// Panic logs a message at level Panic.
-	Panic = log.Panic
-	// Fatal logs a message at level Fatal.
-	Fatal = log.Fatal
-
-	// TraceLevel is the log level Trace.
-	TraceLevel = log.TraceLevel
-	// DebugLevel is the log level Debug.
-	DebugLevel = log.DebugLevel
-	// InfoLevel is the log level Info.
-	InfoLevel = log.InfoLevel
-	// WarnLevel is the log level Warn.
-	WarnLevel = log.WarnLevel
-	// ErrorLevel is the log level Error.
-	ErrorLevel = log.ErrorLevel
-	// PanicLevel is the log level Panic.
-	PanicLevel = log.PanicLevel
-	// FatalLevel is the log level Fatal.
-	FatalLevel = log.FatalLevel
+// Order modes.
+const (
+	OrderAuto format.OrderModeString = ""
+	// OrderOn enables the order mode.
+	OrderOn format.OrderModeString = format.OrderModeOn
+	// OrderOff disables the order mode.
+	OrderOff format.OrderModeString = format.OrderModeOff
 )
 
-// Setup is setting up the given logger using. It sets the formatter, the log
-// level, and the report caller flag. If no logger is given, the standard
+// Formatter is the formatter used for logging output.
+type Formatter format.Formatter
+
+// Supported formatters.
+const (
+	// Pretty is setting up a pretty formatter.
+	FormatterPretty format.Formatter = format.FormatterPretty
+	// Text is setting up a text formatter.
+	FormatterText format.Formatter = format.FormatterText
+	// JSON is setting up a JSON formatter.
+	FormatterJSON format.Formatter = format.FormatterJSON
+)
+
+// SetupRus is setting up the given logger using. It sets the formatter, the
+// log level, and the report caller flag. If no logger is given, the standard
 // logger is used.
-func (c *Config) Setup(logger *Logger) *Logger {
+func (c *Config) SetupRus(logger *logrus.Logger) *logrus.Logger {
 	// Uses the standard logger if no logger is given.
 	if logger == nil {
-		logger = StandardLogger()
+		logger = logrus.StandardLogger()
 	}
 
-	// Sets up the text formatter with the given time format.
-	if c.TimeFormat != "" {
-		logger.SetFormatter(&TextFormatter{
+	// Sets up the log output format.
+	switch c.Formatter {
+	case FormatterText:
+		mode := c.ColorMode.Parse()
+		logger.SetFormatter(&logrus.TextFormatter{
 			TimestampFormat: c.TimeFormat,
-			ForceColors:     true,
+			FullTimestamp:   true,
+			ForceColors:     mode&format.ColorOn == format.ColorOn,
+			DisableColors:   mode&format.ColorOff == format.ColorOff,
+		})
+	case FormatterJSON:
+		logger.SetFormatter(&logrus.JSONFormatter{
+			TimestampFormat: c.TimeFormat,
+		})
+	case FormatterPretty:
+		fallthrough
+	default:
+		logger.SetFormatter(&format.Pretty{
+			TimeFormat: c.TimeFormat,
+			ColorMode:  c.ColorMode.Parse(),
 		})
 	}
 
 	// Sets up the log level if given.
-	logLevel, err := ParseLevel(c.Level)
+	logLevel, err := logrus.ParseLevel(c.Level)
 	if err != nil {
-		logger.WithError(err).WithFields(Fields{
+		logger.WithError(err).WithFields(logrus.Fields{
 			"config": c.Level,
 		}).Info("failed setting log level")
 	} else {
 		logger.SetLevel(logLevel)
-		WithFields(Fields{
+		logger.WithFields(logrus.Fields{
 			"level": c.Level,
 		}).Info("setting up log level")
 	}

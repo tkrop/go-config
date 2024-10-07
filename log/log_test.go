@@ -4,10 +4,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/tkrop/go-config/config"
 	"github.com/tkrop/go-config/log"
+	"github.com/tkrop/go-config/log/format"
 	"github.com/tkrop/go-testing/test"
 )
 
@@ -29,21 +31,21 @@ type setupParams struct {
 }
 
 var testSetupParams = map[string]setupParams{
-	"read default log config no logger": {
+	"read default config no logger": {
 		config:           &log.Config{},
 		expectLogLevel:   DefaultLogLevel,
 		expectTimeFormat: DefaultLogTimeFormat,
 		expectLogCaller:  DefaultLogCaller,
 	},
 
-	"read default log config": {
+	"read default config": {
 		config:           &log.Config{},
 		expectLogLevel:   DefaultLogLevel,
 		expectTimeFormat: DefaultLogTimeFormat,
 		expectLogCaller:  DefaultLogCaller,
 	},
 
-	"change log level debug": {
+	"log level custom": {
 		config: &log.Config{
 			Level: "debug",
 		},
@@ -52,7 +54,7 @@ var testSetupParams = map[string]setupParams{
 		expectLogCaller:  DefaultLogCaller,
 	},
 
-	"invalid log level debug": {
+	"log level invalid": {
 		config: &log.Config{
 			Level: "detail",
 		},
@@ -61,7 +63,7 @@ var testSetupParams = map[string]setupParams{
 		expectLogCaller:  DefaultLogCaller,
 	},
 
-	"change time format date": {
+	"time format date": {
 		config: &log.Config{
 			TimeFormat: "2024-12-31",
 		},
@@ -70,7 +72,7 @@ var testSetupParams = map[string]setupParams{
 		expectLogCaller:  DefaultLogCaller,
 	},
 
-	"change caller to true": {
+	"caller enabled": {
 		config: &log.Config{
 			Caller: true,
 		},
@@ -78,23 +80,66 @@ var testSetupParams = map[string]setupParams{
 		expectTimeFormat: DefaultLogTimeFormat,
 		expectLogCaller:  true,
 	},
+
+	"formater text": {
+		config: &log.Config{
+			Formatter: format.FormatterText,
+		},
+		expectLogLevel:   DefaultLogLevel,
+		expectTimeFormat: DefaultLogTimeFormat,
+		expectLogCaller:  DefaultLogCaller,
+	},
+
+	"formater json": {
+		config: &log.Config{
+			Formatter: format.FormatterJSON,
+		},
+		expectLogLevel:   DefaultLogLevel,
+		expectTimeFormat: DefaultLogTimeFormat,
+		expectLogCaller:  DefaultLogCaller,
+	},
+
+	"formater pretty": {
+		config: &log.Config{
+			Formatter: format.FormatterPretty,
+		},
+		expectLogLevel:   DefaultLogLevel,
+		expectTimeFormat: DefaultLogTimeFormat,
+		expectLogCaller:  DefaultLogCaller,
+	},
 }
 
 func TestSetup(t *testing.T) {
 	test.Map(t, testSetupParams).
 		Run(func(t test.Test, param setupParams) {
 			// Given
-			logger := log.New()
+			logger := logrus.New()
 			config := config.New[config.Config]("TEST", "test").
 				SetSubDefaults("log", param.config, false).
 				GetConfig(t.Name())
 
 			// When
-			config.SetupLogger(logger)
+			config.Log.SetupRus(logger)
 
 			// Then
-			assert.Equal(t, param.expectTimeFormat,
-				logger.Formatter.(*log.TextFormatter).TimestampFormat)
+			switch param.config.Formatter {
+			case format.FormatterText:
+				assert.IsType(t, &logrus.TextFormatter{}, logger.Formatter)
+				assert.Equal(t, param.expectTimeFormat,
+					logger.Formatter.(*logrus.TextFormatter).TimestampFormat)
+			case format.FormatterJSON:
+				assert.IsType(t, &logrus.JSONFormatter{}, logger.Formatter)
+				assert.Equal(t, param.expectTimeFormat,
+					logger.Formatter.(*logrus.JSONFormatter).TimestampFormat)
+			case format.FormatterPretty:
+				assert.IsType(t, &format.Pretty{}, logger.Formatter)
+				assert.Equal(t, param.expectTimeFormat,
+					logger.Formatter.(*format.Pretty).TimeFormat)
+			default:
+				assert.IsType(t, &format.Pretty{}, logger.Formatter)
+				assert.Equal(t, param.expectTimeFormat,
+					logger.Formatter.(*format.Pretty).TimeFormat)
+			}
 			assert.Equal(t, param.expectLogLevel, logger.GetLevel().String())
 			assert.Equal(t, param.expectLogCaller, logger.ReportCaller)
 		})
@@ -106,7 +151,7 @@ func TestSetupNil(t *testing.T) {
 		GetConfig(t.Name())
 
 	// When
-	config.SetupLogger(nil)
+	config.Log.SetupRus(nil)
 
 	// Then
 	assert.True(t, true)

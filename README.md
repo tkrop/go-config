@@ -132,16 +132,17 @@ in the `SetSubDefaults` method as follows:
 
 ## Logger setup
 
-The [`go-config`][go-config] framework supports to set up a [logrus][logrus]
-`Logger`_out-of-the-box using the following two approaches:
+The [`go-config`][go-config] framework supports to set up a `Logger` in
+[zerolog][zerolog] and [logrus][logrus] using the provided standard options
+out-of-the-box as follows:
 
 ```go
-    logger := config.SetupLogger(log.New())
-    logger := config.Log.Setup(log.New())
+    logger := config.Log.Setup[Rus|Zero](log.New(...)|nil)
 ```
 
 If no logger is provided, the standard logger is configured and returned.
 
+[zerolog]: <https://github.com/ra/zerolog>
 [logrus]: <https://github.com/sirupsen/logrus>
 
 

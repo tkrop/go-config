@@ -8,7 +8,7 @@ import (
 	"github.com/tkrop/go-testing/test"
 )
 
-//revive:disable:line-length-limit // go generate line length.
+//revive:disable:line-length-limit // go:generate line length.
 
 //go:generate mockgen -package=reflect_test -destination=mock_callback_test.go -source=walker_test.go Callback
 
