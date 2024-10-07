@@ -5,9 +5,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
-        go-version: 1.23.1
+        go-version: 1.23.2
 
     - name: Checkout code
       uses: actions/checkout@v4
@@ -16,7 +16,7 @@ jobs:
       env:
         CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
         LANG: en_US.UTF-8
-      # using --trace has a side effect on the the test output.
+      shell: 'script -q -e -c "bash {0}"'
       run: make --trace all
 
     - name: Send coverage report
@@ -30,9 +30,9 @@ jobs:
       contents: write
     steps:
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
-        go-version: 1.23.1
+        go-version: 1.23.2
 
     - name: Checkout code
       uses: actions/checkout@v4

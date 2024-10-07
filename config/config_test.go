@@ -10,7 +10,6 @@ import (
 
 	"github.com/tkrop/go-config/config"
 	"github.com/tkrop/go-config/internal/filepath"
-	"github.com/tkrop/go-config/log"
 	"github.com/tkrop/go-testing/mock"
 	"github.com/tkrop/go-testing/test"
 )
@@ -101,23 +100,4 @@ func TestConfig(t *testing.T) {
 			assert.Equal(t, param.expectEnv, reader.GetString("env"))
 			assert.Equal(t, param.expectLogLevel, reader.GetString("log.level"))
 		})
-}
-
-func TestSetupLogger(t *testing.T) {
-	t.Parallel()
-
-	// Given
-	logger := log.New()
-	config := config.New[config.Config]("TC", "test").
-		SetDefaults(func(r *config.Reader[config.Config]) {
-			r.AddConfigPath("fixtures")
-			r.SetDefault("log.level", "trace")
-		}).
-		GetConfig(t.Name())
-
-	// When
-	config.SetupLogger(logger)
-
-	// Then
-	assert.Equal(t, log.TraceLevel, logger.GetLevel())
 }

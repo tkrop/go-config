@@ -8,11 +8,12 @@ import (
 	"os"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
 	"github.com/tkrop/go-config/info"
 	"github.com/tkrop/go-config/internal/reflect"
-	"github.com/tkrop/go-config/log"
+	clog "github.com/tkrop/go-config/log"
 )
 
 // ErrConfig is a common error to indicate a configuration error.
@@ -31,12 +32,7 @@ type Config struct {
 	// Info default build information.
 	Info *info.Info
 	// Log default logger setup.
-	Log *log.Config
-}
-
-// SetupLogger is a convenience method to setup the logger.
-func (c *Config) SetupLogger(logger *log.Logger) *log.Logger {
-	return c.Log.Setup(logger)
+	Log *clog.Config
 }
 
 // Reader common config reader based on viper.
