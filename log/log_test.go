@@ -1,6 +1,7 @@
 package log_test
 
 import (
+	"bytes"
 	"testing"
 	"time"
 
@@ -109,11 +110,12 @@ var testSetupParams = map[string]setupParams{
 	},
 }
 
-func TestSetup(t *testing.T) {
+func TestSetupRus(t *testing.T) {
 	test.Map(t, testSetupParams).
 		Run(func(t test.Test, param setupParams) {
 			// Given
 			logger := logrus.New()
+			logger.SetOutput(&bytes.Buffer{})
 			config := config.New[config.Config]("TEST", "test").
 				SetSubDefaults("log", param.config, false).
 				GetConfig(t.Name())

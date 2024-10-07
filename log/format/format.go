@@ -94,7 +94,7 @@ const (
 var splitRegex = regexp.MustCompile(`[|,:;]`)
 
 // Parse parses the color mode.
-func (m ColorModeString) Parse() ColorMode {
+func (m ColorModeString) Parse(colorized bool) ColorMode {
 	mode := ColorUnset
 	for _, m := range splitRegex.Split(string(m), -1) {
 		switch ColorModeString(m) {
@@ -102,14 +102,18 @@ func (m ColorModeString) Parse() ColorMode {
 			mode = ColorOff
 		case ColorModeOn:
 			mode = ColorOn
-		case ColorModeAuto:
-			mode = ColorAuto
 		case ColorModeLevels:
 			mode |= ColorLevels
 		case ColorModeFields:
 			mode |= ColorFields
+		case ColorModeAuto:
+			fallthrough
 		default:
-			mode = ColorDefault
+			if colorized {
+				mode = ColorOn
+			} else {
+				mode = ColorOff
+			}
 		}
 	}
 	return mode
@@ -121,19 +125,17 @@ type ColorMode uint
 // Color modes.
 const (
 	// ColorDefault is the default color mode.
-	ColorDefault = ColorAuto
+	ColorDefault = ColorOn
 	// ColorUnset is the unset color mode (activates the default).
 	ColorUnset ColorMode = 0
 	// ColorOff disables coloring of logs for all outputs files.
 	ColorOff ColorMode = 1
 	// ColorOn enables coloring of logs for all outputs files.
-	ColorOn ColorMode = 2
-	// ColorAuto enables the automatic coloring for tty outputs files.
-	ColorAuto ColorMode = 4
+	ColorOn ColorMode = ColorFields | ColorLevels
 	// ColorLevels enables coloring for log levels entries only.
-	ColorLevels ColorMode = 8
+	ColorLevels ColorMode = 2
 	// ColorFields enables coloring for fields names only.
-	ColorFields ColorMode = 16
+	ColorFields ColorMode = 4
 )
 
 // CheckFlag checks if the given color mode flag is set.
