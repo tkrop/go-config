@@ -4,7 +4,6 @@ go 1.23.2
 
 require (
 	github.com/golang/mock v1.6.0
-	github.com/mattn/go-tty v0.0.7
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/rs/zerolog v1.33.0
 	github.com/sirupsen/logrus v1.9.3

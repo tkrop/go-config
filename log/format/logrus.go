@@ -4,16 +4,14 @@ package format
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"maps"
-	"os"
 	"slices"
 	"sort"
 	"strconv"
-	"sync"
 
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/sys/unix"
 )
 
 // Pretty formats logs into a pretty format.
@@ -27,80 +25,32 @@ type Pretty struct {
 
 	// LevelNames is defining the names used for marking the different log
 	// levels.
-	levelNames []string
+	LevelNames []string
 	// LevelColors is defining the colors used for marking the different log
 	// levels.
-	levelColors []string
-
-	// initOnce is used to initialize the formatter only once.
-	initOnce sync.Once
-}
-
-// Init initializes the pretty formatter.
-func (p *Pretty) Init(out io.Writer) *Pretty {
-	// Set public default fields.
-	if p.TimeFormat == "" {
-		p.TimeFormat = DefaultTimeFormat
-	}
-	if p.ColorMode == ColorUnset {
-		p.ColorMode = ColorDefault
-	}
-	if p.OrderMode == OrderOff {
-		p.OrderMode = OrderDefault
-	}
-
-	// Set default level names and colors.
-	if len(p.levelNames) == 0 {
-		p.levelNames = DefaultLevelNames
-	}
-	if len(p.levelColors) == 0 {
-		p.levelColors = DefaultLevelColors
-	}
-
-	if p.ColorMode&ColorAuto == ColorAuto {
-		if IsTerminal(out) {
-			p.ColorMode |= ColorOn
-		}
-	}
-	if p.ColorMode&ColorOn == ColorOn {
-		p.ColorMode |= ColorLevels | ColorFields
-	}
-	return p
+	LevelColors []string
 }
 
 // Format formats the log entry to a pretty format.
 func (p *Pretty) Format(entry *log.Entry) ([]byte, error) {
-	p.initOnce.Do(func() { p.Init(entry.Logger.Out) })
-
 	buffer := NewBuffer(p, &bytes.Buffer{})
 	buffer.WriteString(entry.Time.Format(p.TimeFormat)).
 		WriteByte(' ').WriteLevel(entry.Level).WriteCaller(entry).
 		WriteByte(' ').WriteString(entry.Message)
 
-	for _, key := range p.getKeys(entry.Data) {
+	for _, key := range p.getSortedKeys(entry.Data) {
 		buffer.WriteByte(' ').WriteData(key, entry.Data[key])
 	}
-
-	return buffer.Bytes()
+	return buffer.WriteByte('\n').Bytes()
 }
 
-// getKeys returns the keys of the given data.
-func (p *Pretty) getKeys(data log.Fields) []string {
+// getSortedKeys returns the keys of the given data.
+func (p *Pretty) getSortedKeys(data log.Fields) []string {
 	keys := slices.Collect(maps.Keys(data))
 	if p.OrderMode.CheckFlag(OrderOn) {
 		sort.Strings(keys)
 	}
 	return keys
-}
-
-// IsTerminal checks whether the given writer is a terminal.
-func IsTerminal(writer io.Writer) bool {
-	if file, ok := writer.(*os.File); ok {
-		// #nosec G115 // is a safe conversion for files.
-		_, err := unix.IoctlGetTermios(int(file.Fd()), unix.TCGETS)
-		return err == nil
-	}
-	return false
 }
 
 // Buffer is the interface for writing bytes and strings.
@@ -178,10 +128,10 @@ func (b *Buffer) WriteLevel(level log.Level) *Buffer {
 	}
 
 	if b.pretty.ColorMode.CheckFlag(ColorLevels) {
-		return b.WriteColored(b.pretty.levelColors[level],
-			b.pretty.levelNames[level])
+		return b.WriteColored(b.pretty.LevelColors[level],
+			b.pretty.LevelNames[level])
 	}
-	return b.WriteString(b.pretty.levelNames[level])
+	return b.WriteString(b.pretty.LevelNames[level])
 }
 
 // WriteField writes the given key with the given color to the buffer.
@@ -191,7 +141,7 @@ func (b *Buffer) WriteField(level log.Level, key string) *Buffer {
 	}
 
 	if b.pretty.ColorMode.CheckFlag(ColorFields) {
-		return b.WriteColored(b.pretty.levelColors[level], key)
+		return b.WriteColored(b.pretty.LevelColors[level], key)
 	}
 	return b.WriteString(key)
 }
@@ -209,6 +159,22 @@ func (b *Buffer) WriteCaller(entry *log.Entry) *Buffer {
 		WriteString(caller.Function).WriteByte(']')
 }
 
+// WriteString writes the given value to the buffer.
+func (b *Buffer) WriteValue(value any) *Buffer {
+	if b.err != nil {
+		return b
+	}
+
+	switch value := value.(type) {
+	case int, int8, int16, int32, int64,
+		uint, uint8, uint16, uint32, uint64,
+		float32, float64, complex64, complex128, bool:
+		return b.WriteString(fmt.Sprint(value))
+	default:
+		return b.WriteString(fmt.Sprintf("%q", value))
+	}
+}
+
 // WriteData writes the data to the buffer.
 func (b *Buffer) WriteData(key string, value any) *Buffer {
 	if b.err != nil {
@@ -218,10 +184,10 @@ func (b *Buffer) WriteData(key string, value any) *Buffer {
 	switch key {
 	case log.ErrorKey:
 		return b.WriteField(log.ErrorLevel, key).
-			WriteByte('=').WriteString(value.(error).Error())
+			WriteByte('=').WriteValue(value)
 	default:
 		return b.WriteField(FieldLevel, key).
-			WriteByte('=').WriteString(value.(string))
+			WriteByte('=').WriteValue(value)
 	}
 }
 

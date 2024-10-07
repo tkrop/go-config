@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattn/go-tty"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
@@ -43,6 +42,24 @@ var (
 	errAny = errors.New("any error")
 )
 
+// setupTimeFormat sets up the time format for testing.
+func setupTimeFormat(timeFormat string) string {
+	if timeFormat == "" {
+		return format.DefaultTimeFormat
+	}
+	return timeFormat
+}
+
+// setupWriter sets up the writer for testing.
+func setupWriter(
+	mocks *mock.Mocks, expect mock.SetupFunc,
+) format.BufferWriter {
+	if expect != nil {
+		return mock.Get(mocks, NewMockBufferWriter)
+	}
+	return &bytes.Buffer{}
+}
+
 // Helper functions for testing log levels without color.
 func level(level log.Level) string {
 	return format.DefaultLevelNames[level]
@@ -61,7 +78,7 @@ func fieldC(value string) string {
 
 // Helper functions for testing key-value data without color.
 func data(key, value string) string {
-	return key + "=" + value
+	return key + "=\"" + value + "\""
 }
 
 // Helper functions for testing key-value data with color.
@@ -70,11 +87,12 @@ func dataC(key, value string) string {
 	if key == log.ErrorKey {
 		color = format.ColorError
 	}
-	return "\x1b[" + color + "m" + key + "\x1b[0m=" + value
+	return "\x1b[" + color + "m" + key + "\x1b[0m=\"" + value + "\""
 }
 
 type testPrettyFormatParam struct {
 	timeFormat   string
+	noTerminal   bool
 	colorMode    format.ColorModeString
 	orderMode    format.OrderModeString
 	entry        *log.Entry
@@ -91,7 +109,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "panic message",
 		},
 		expectResult: otime[0:26] + " " +
-			levelC(log.PanicLevel) + " panic message",
+			levelC(log.PanicLevel) + " panic message\n",
 	},
 	"level fatal default": {
 		entry: &log.Entry{
@@ -99,7 +117,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "fatal message",
 		},
 		expectResult: otime[0:26] + " " +
-			levelC(log.FatalLevel) + " fatal message",
+			levelC(log.FatalLevel) + " fatal message\n",
 	},
 	"level error default": {
 		entry: &log.Entry{
@@ -107,7 +125,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "error message",
 		},
 		expectResult: otime[0:26] + " " +
-			levelC(log.ErrorLevel) + " error message",
+			levelC(log.ErrorLevel) + " error message\n",
 	},
 	"level warn default": {
 		entry: &log.Entry{
@@ -115,7 +133,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "warn message",
 		},
 		expectResult: otime[0:26] + " " +
-			levelC(log.WarnLevel) + " warn message",
+			levelC(log.WarnLevel) + " warn message\n",
 	},
 	"level info default": {
 		entry: &log.Entry{
@@ -123,7 +141,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "info message",
 		},
 		expectResult: otime[0:26] + " " +
-			levelC(log.InfoLevel) + " info message",
+			levelC(log.InfoLevel) + " info message\n",
 	},
 	"level debug default": {
 		entry: &log.Entry{
@@ -131,7 +149,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "debug message",
 		},
 		expectResult: otime[0:26] + " " +
-			levelC(log.DebugLevel) + " debug message",
+			levelC(log.DebugLevel) + " debug message\n",
 	},
 	"level trace default": {
 		entry: &log.Entry{
@@ -139,7 +157,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "trace message",
 		},
 		expectResult: otime[0:26] + " " +
-			levelC(log.TraceLevel) + " trace message",
+			levelC(log.TraceLevel) + " trace message\n",
 	},
 
 	// Test levels with color.
@@ -150,7 +168,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "panic message",
 		},
 		expectResult: otime[0:26] + " " +
-			levelC(log.PanicLevel) + " panic message",
+			levelC(log.PanicLevel) + " panic message\n",
 	},
 	"level fatal color-on": {
 		colorMode: format.ColorModeOn,
@@ -159,7 +177,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "fatal message",
 		},
 		expectResult: otime[0:26] + " " +
-			levelC(log.FatalLevel) + " fatal message",
+			levelC(log.FatalLevel) + " fatal message\n",
 	},
 	"level error color-on": {
 		colorMode: format.ColorModeOn,
@@ -168,7 +186,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "error message",
 		},
 		expectResult: otime[0:26] + " " +
-			levelC(log.ErrorLevel) + " error message",
+			levelC(log.ErrorLevel) + " error message\n",
 	},
 	"level warn color-on": {
 		colorMode: format.ColorModeOn,
@@ -177,7 +195,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "warn message",
 		},
 		expectResult: otime[0:26] + " " +
-			levelC(log.WarnLevel) + " warn message",
+			levelC(log.WarnLevel) + " warn message\n",
 	},
 	"level info color-on": {
 		colorMode: format.ColorModeOn,
@@ -186,7 +204,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "info message",
 		},
 		expectResult: otime[0:26] + " " +
-			levelC(log.InfoLevel) + " info message",
+			levelC(log.InfoLevel) + " info message\n",
 	},
 	"level debug color-on": {
 		colorMode: format.ColorModeOn,
@@ -195,7 +213,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "debug message",
 		},
 		expectResult: otime[0:26] + " " +
-			levelC(log.DebugLevel) + " debug message",
+			levelC(log.DebugLevel) + " debug message\n",
 	},
 	"level trace color-on": {
 		colorMode: format.ColorModeOn,
@@ -204,7 +222,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "trace message",
 		},
 		expectResult: otime[0:26] + " " +
-			levelC(log.TraceLevel) + " trace message",
+			levelC(log.TraceLevel) + " trace message\n",
 	},
 
 	// Test levels with color.
@@ -215,7 +233,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "panic message",
 		},
 		expectResult: otime[0:26] + " " +
-			level(log.PanicLevel) + " panic message",
+			level(log.PanicLevel) + " panic message\n",
 	},
 	"level fatal color-off": {
 		colorMode: format.ColorModeOff,
@@ -224,7 +242,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "fatal message",
 		},
 		expectResult: otime[0:26] + " " +
-			level(log.FatalLevel) + " fatal message",
+			level(log.FatalLevel) + " fatal message\n",
 	},
 	"level error color-off": {
 		colorMode: format.ColorModeOff,
@@ -233,7 +251,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "error message",
 		},
 		expectResult: otime[0:26] + " " +
-			level(log.ErrorLevel) + " error message",
+			level(log.ErrorLevel) + " error message\n",
 	},
 	"level warn color-off": {
 		colorMode: format.ColorModeOff,
@@ -242,7 +260,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "warn message",
 		},
 		expectResult: otime[0:26] + " " +
-			level(log.WarnLevel) + " warn message",
+			level(log.WarnLevel) + " warn message\n",
 	},
 	"level info color-off": {
 		colorMode: format.ColorModeOff,
@@ -251,7 +269,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "info message",
 		},
 		expectResult: otime[0:26] + " " +
-			level(log.InfoLevel) + " info message",
+			level(log.InfoLevel) + " info message\n",
 	},
 	"level debug color-off": {
 		colorMode: format.ColorModeOff,
@@ -260,7 +278,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "debug message",
 		},
 		expectResult: otime[0:26] + " " +
-			level(log.DebugLevel) + " debug message",
+			level(log.DebugLevel) + " debug message\n",
 	},
 	"level trace color-off": {
 		colorMode: format.ColorModeOff,
@@ -269,7 +287,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			Message: "trace message",
 		},
 		expectResult: otime[0:26] + " " +
-			level(log.TraceLevel) + " trace message",
+			level(log.TraceLevel) + " trace message\n",
 	},
 
 	// Test order key value data.
@@ -280,7 +298,8 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 		},
 		expectResult: otime[0:26] + " " +
 			levelC(log.PanicLevel) + " data message " +
-			dataC("key1", "value1") + " " + dataC("key2", "value2"),
+			dataC("key1", "value1") + " " +
+			dataC("key2", "value2") + "\n",
 	},
 	"data ordered": {
 		orderMode: format.OrderModeOn,
@@ -290,7 +309,8 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 		},
 		expectResult: otime[0:26] + " " +
 			levelC(log.PanicLevel) + " data message " +
-			dataC("key1", "value1") + " " + dataC("key2", "value2"),
+			dataC("key1", "value1") + " " +
+			dataC("key2", "value2") + "\n",
 	},
 	"data unordered": {
 		orderMode: format.OrderModeOff,
@@ -315,7 +335,8 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 		},
 		expectResult: otime[0:26] + " " +
 			level(log.PanicLevel) + " data message " +
-			data("key1", "value1") + " " + data("key2", "value2"),
+			data("key1", "value1") + " " +
+			data("key2", "value2") + "\n",
 	},
 	"data color-on": {
 		colorMode: format.ColorModeOn,
@@ -325,9 +346,10 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 		},
 		expectResult: otime[0:26] + " " +
 			levelC(log.PanicLevel) + " data message " +
-			dataC("key1", "value1") + " " + dataC("key2", "value2"),
+			dataC("key1", "value1") + " " +
+			dataC("key2", "value2") + "\n",
 	},
-	"data color-auto": {
+	"data color-auto colorized": {
 		colorMode: format.ColorModeAuto,
 		entry: &log.Entry{
 			Message: "data message",
@@ -335,10 +357,12 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 		},
 		expectResult: otime[0:26] + " " +
 			levelC(log.PanicLevel) + " data message " +
-			dataC("key1", "value1") + " " + dataC("key2", "value2"),
+			dataC("key1", "value1") + " " +
+			dataC("key2", "value2") + "\n",
 	},
-	"data color-auto no-tty": {
-		colorMode: format.ColorModeAuto,
+	"data color-auto not-colorized": {
+		colorMode:  format.ColorModeAuto,
+		noTerminal: true,
 		entry: &log.Entry{
 			Message: "data message",
 			Data:    anyData,
@@ -346,7 +370,8 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 		},
 		expectResult: otime[0:26] + " " +
 			level(log.PanicLevel) + " data message " +
-			data("key1", "value1") + " " + data("key2", "value2"),
+			data("key1", "value1") + " " +
+			data("key2", "value2") + "\n",
 	},
 	"data color-levels": {
 		colorMode: format.ColorModeLevels,
@@ -356,7 +381,8 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 		},
 		expectResult: otime[0:26] + " " +
 			levelC(log.PanicLevel) + " data message " +
-			data("key1", "value1") + " " + data("key2", "value2"),
+			data("key1", "value1") + " " +
+			data("key2", "value2") + "\n",
 	},
 	"data color-fields": {
 		colorMode: format.ColorModeFields,
@@ -366,7 +392,8 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 		},
 		expectResult: otime[0:26] + " " +
 			level(log.PanicLevel) + " data message " +
-			dataC("key1", "value1") + " " + dataC("key2", "value2"),
+			dataC("key1", "value1") + " " +
+			dataC("key2", "value2") + "\n",
 	},
 	"data color-levels+fields": {
 		colorMode: format.ColorModeLevels + "|" + format.ColorModeFields,
@@ -376,7 +403,8 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 		},
 		expectResult: otime[0:26] + " " +
 			levelC(log.PanicLevel) + " data message " +
-			dataC("key1", "value1") + " " + dataC("key2", "value2"),
+			dataC("key1", "value1") + " " +
+			dataC("key2", "value2") + "\n",
 	},
 
 	// Time format.
@@ -387,7 +415,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 		},
 		expectResult: otime[0:26] + " " +
 			levelC(log.PanicLevel) + " " +
-			"default time message",
+			"default time message\n",
 	},
 	"time short": {
 		timeFormat: "2006-01-02 15:04:05",
@@ -397,7 +425,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 		},
 		expectResult: otime[0:19] + " " +
 			levelC(log.PanicLevel) + " " +
-			"short time message",
+			"short time message\n",
 	},
 	"time long": {
 		timeFormat: "2006-01-02 15:04:05.000000000",
@@ -407,7 +435,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 		},
 		expectResult: otime[0:29] + " " +
 			levelC(log.PanicLevel) + " " +
-			"long time message",
+			"long time message\n",
 	},
 
 	// Report caller.
@@ -418,7 +446,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 		},
 		expectResult: otime[0:26] + " " +
 			levelC(log.PanicLevel) + " " +
-			"caller message",
+			"caller message\n",
 	},
 	"caller report": {
 		entry: &log.Entry{
@@ -429,8 +457,8 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 			},
 		},
 		expectResult: otime[0:26] + " " +
-			level(log.PanicLevel) + " " +
-			"[file:123#function] caller report message",
+			levelC(log.PanicLevel) + " " +
+			"[file:123#function] caller report message\n",
 	},
 
 	// Test error.
@@ -445,7 +473,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 		expectError: nil,
 		expectResult: otime[0:26] + " " +
 			levelC(log.PanicLevel) + " error message " +
-			dataC("error", errAny.Error()),
+			dataC("error", errAny.Error()) + "\n",
 	},
 	"error output color-on": {
 		colorMode: format.ColorModeOn,
@@ -459,7 +487,7 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 		expectError: nil,
 		expectResult: otime[0:26] + " " +
 			levelC(log.PanicLevel) + " error message " +
-			dataC("error", errAny.Error()),
+			dataC("error", errAny.Error()) + "\n",
 	},
 	"error output color-off": {
 		colorMode: format.ColorModeOff,
@@ -473,31 +501,26 @@ var testPrettyFormatParams = map[string]testPrettyFormatParam{
 		expectError: nil,
 		expectResult: otime[0:26] + " " +
 			level(log.PanicLevel) + " error message " +
-			data("error", errAny.Error()),
+			data("error", errAny.Error()) + "\n",
 	},
 }
 
 func TestPrettyFormat(t *testing.T) {
-	tty, err := tty.Open()
-	assert.NoError(t, err)
-
 	test.Map(t, testPrettyFormatParams).
 		Run(func(t test.Test, param testPrettyFormatParam) {
 			// Given
 			pretty := &format.Pretty{
-				TimeFormat: param.timeFormat,
-				ColorMode:  param.colorMode.Parse(),
-				OrderMode:  param.orderMode.Parse(),
+				TimeFormat:  setupTimeFormat(param.timeFormat),
+				ColorMode:   param.colorMode.Parse(!param.noTerminal),
+				OrderMode:   param.orderMode.Parse(),
+				LevelNames:  format.DefaultLevelNames,
+				LevelColors: format.DefaultLevelColors,
 			}
 
 			if param.entry.Time == (time.Time{}) {
 				time, err := time.Parse(time.RFC3339Nano, itime)
 				assert.NoError(t, err)
 				param.entry.Time = time
-			}
-			if param.entry.Logger == nil {
-				param.entry.Logger = log.New()
-				param.entry.Logger.Out = tty.Output()
 			}
 
 			// When
@@ -510,26 +533,13 @@ func TestPrettyFormat(t *testing.T) {
 			} else {
 				param.expect(t, string(result), err)
 			}
-		}).
-		Cleanup(func() {
-			tty.Close()
 		})
 }
 
-func setupWriter(mocks *mock.Mocks, expect mock.SetupFunc) format.BufferWriter {
-	var writer format.BufferWriter
-	if expect != nil {
-		writer = mock.Get(mocks, NewMockBufferWriter)
-	} else {
-		writer = &bytes.Buffer{}
-	}
-	return writer
-}
-
 type testBufferWriteParam struct {
-	pretty       *format.Pretty
+	colorMode    format.ColorModeString
 	error        error
-	setup        func(test.Test, *format.Buffer)
+	setup        func(*format.Buffer)
 	expect       mock.SetupFunc
 	expectError  error
 	expectString string
@@ -539,13 +549,13 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 	// Test write byte.
 	"write byte error": {
 		error: errAny,
-		setup: func(t test.Test, buffer *format.Buffer) {
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteByte(' ')
 		},
 		expectError: errAny,
 	},
 	"write byte failure": {
-		setup: func(t test.Test, buffer *format.Buffer) {
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteByte(' ')
 		},
 		expect: mock.Chain(func(mocks *mock.Mocks) any {
@@ -558,7 +568,7 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 		expectError: errAny,
 	},
 	"write byte": {
-		setup: func(t test.Test, buffer *format.Buffer) {
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteByte(' ')
 		},
 		expectString: " ",
@@ -567,13 +577,13 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 	// Test write string.
 	"write string error": {
 		error: errAny,
-		setup: func(t test.Test, buffer *format.Buffer) {
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteString("string")
 		},
 		expectError: errAny,
 	},
 	"write string failure": {
-		setup: func(t test.Test, buffer *format.Buffer) {
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteString("string")
 		},
 		expect: mock.Chain(func(mocks *mock.Mocks) any {
@@ -586,7 +596,7 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 		expectError: errAny,
 	},
 	"write string": {
-		setup: func(t test.Test, buffer *format.Buffer) {
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteString("string")
 		},
 		expectString: "string",
@@ -595,31 +605,27 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 	// Test write colored.
 	"write colored error": {
 		error: errAny,
-		setup: func(t test.Test, buffer *format.Buffer) {
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteColored(format.ColorField, "string")
 		},
 		expectError: errAny,
 	},
 	"write colored default": {
-		setup: func(t test.Test, buffer *format.Buffer) {
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteColored(format.ColorField, "string")
 		},
 		expectString: fieldC("string"),
 	},
 	"write colored color-off": {
-		pretty: &format.Pretty{
-			ColorMode: format.ColorOff,
-		},
-		setup: func(t test.Test, buffer *format.Buffer) {
+		colorMode: format.ColorModeOff,
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteColored(format.ColorField, "string")
 		},
 		expectString: "string",
 	},
 	"write colored color-on": {
-		pretty: &format.Pretty{
-			ColorMode: format.ColorOn,
-		},
-		setup: func(t test.Test, buffer *format.Buffer) {
+		colorMode: format.ColorModeOn,
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteColored(format.ColorField, "string")
 		},
 		expectString: fieldC("string"),
@@ -628,31 +634,27 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 	// Test write level.
 	"write level error": {
 		error: errAny,
-		setup: func(t test.Test, buffer *format.Buffer) {
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteLevel(log.PanicLevel)
 		},
 		expectError: errAny,
 	},
 	"write level default": {
-		setup: func(t test.Test, buffer *format.Buffer) {
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteLevel(log.PanicLevel)
 		},
 		expectString: levelC(log.PanicLevel),
 	},
 	"write level color-on": {
-		pretty: &format.Pretty{
-			ColorMode: format.ColorOn,
-		},
-		setup: func(t test.Test, buffer *format.Buffer) {
+		colorMode: format.ColorModeOn,
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteLevel(log.PanicLevel)
 		},
 		expectString: levelC(log.PanicLevel),
 	},
 	"write level color-off": {
-		pretty: &format.Pretty{
-			ColorMode: format.ColorOff,
-		},
-		setup: func(t test.Test, buffer *format.Buffer) {
+		colorMode: format.ColorModeOff,
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteLevel(log.PanicLevel)
 		},
 		expectString: level(log.PanicLevel),
@@ -661,31 +663,27 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 	// Test write colored field.
 	"write field error": {
 		error: errAny,
-		setup: func(t test.Test, buffer *format.Buffer) {
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteField(format.FieldLevel, "value")
 		},
 		expectError: errAny,
 	},
 	"write field default": {
-		setup: func(t test.Test, buffer *format.Buffer) {
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteField(format.FieldLevel, "value")
 		},
 		expectString: fieldC("value"),
 	},
 	"write field color-on": {
-		pretty: &format.Pretty{
-			ColorMode: format.ColorOn,
-		},
-		setup: func(t test.Test, buffer *format.Buffer) {
+		colorMode: format.ColorModeOn,
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteField(format.FieldLevel, "value")
 		},
 		expectString: fieldC("value"),
 	},
 	"write field color-off": {
-		pretty: &format.Pretty{
-			ColorMode: format.ColorOff,
-		},
-		setup: func(t test.Test, buffer *format.Buffer) {
+		colorMode: format.ColorModeOff,
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteField(format.FieldLevel, "value")
 		},
 		expectString: "value",
@@ -694,7 +692,7 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 	// Test write caller.
 	"write caller error": {
 		error: errAny,
-		setup: func(t test.Test, buffer *format.Buffer) {
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteCaller(&log.Entry{
 				Caller: anyFrame,
 				Logger: &log.Logger{
@@ -705,7 +703,7 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 		expectError: errAny,
 	},
 	"write caller on": {
-		setup: func(t test.Test, buffer *format.Buffer) {
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteCaller(&log.Entry{
 				Caller: anyFrame,
 				Logger: &log.Logger{
@@ -716,7 +714,7 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 		expectString: " [file:123#function]",
 	},
 	"write caller off": {
-		setup: func(t test.Test, buffer *format.Buffer) {
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteCaller(&log.Entry{
 				Logger: &log.Logger{
 					ReportCaller: false,
@@ -726,40 +724,75 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 		expectString: "",
 	},
 
+	// Test write value.
+	"write value error": {
+		error: errAny,
+		setup: func(buffer *format.Buffer) {
+			buffer.WriteValue("value")
+		},
+		expectError: errAny,
+	},
+	"write value string": {
+		setup: func(buffer *format.Buffer) {
+			buffer.WriteValue("value")
+		},
+		expectString: "\"value\"",
+	},
+	"write value int": {
+		setup: func(buffer *format.Buffer) {
+			buffer.WriteValue(123)
+		},
+		expectString: "123",
+	},
+	"write value float": {
+		setup: func(buffer *format.Buffer) {
+			buffer.WriteValue(123.456)
+		},
+		expectString: "123.456",
+	},
+	"write value complex": {
+		setup: func(buffer *format.Buffer) {
+			buffer.WriteValue(123.456 + 789i)
+		},
+		expectString: "(123.456+789i)",
+	},
+	"write value bool": {
+		setup: func(buffer *format.Buffer) {
+			buffer.WriteValue(true)
+		},
+		expectString: "true",
+	},
+
 	// Test write data.
 	"write data error": {
 		error: errAny,
-		setup: func(t test.Test, buffer *format.Buffer) {
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteData("key", "value")
 		},
 		expectError: errAny,
 	},
 	"write data default": {
-		setup: func(t test.Test, buffer *format.Buffer) {
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteData("key", "value")
 		},
 		expectString: dataC("key", "value"),
 	},
 	"write data color-on error": {
-		setup: func(t test.Test, buffer *format.Buffer) {
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteData(log.ErrorKey, errAny)
 		},
 		expectString: dataC(log.ErrorKey, errAny.Error()),
 	},
 	"write data color-on": {
-		pretty: &format.Pretty{
-			ColorMode: format.ColorOn,
-		},
-		setup: func(t test.Test, buffer *format.Buffer) {
+		colorMode: format.ColorModeOn,
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteData("key", "value")
 		},
 		expectString: dataC("key", "value"),
 	},
 	"write data color-off": {
-		pretty: &format.Pretty{
-			ColorMode: format.ColorOff,
-		},
-		setup: func(t test.Test, buffer *format.Buffer) {
+		colorMode: format.ColorModeOff,
+		setup: func(buffer *format.Buffer) {
 			buffer.WriteData("key", "value")
 		},
 		expectString: data("key", "value"),
@@ -767,30 +800,26 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 }
 
 func TestBufferWrite(t *testing.T) {
-	tty, err := tty.Open()
-	assert.NoError(t, err)
-
 	test.Map(t, testBufferWriteParams).
 		Run(func(t test.Test, param testBufferWriteParam) {
 			// Given
 			mocks := mock.NewMocks(t).Expect(param.expect)
-			if param.pretty == nil {
-				param.pretty = &format.Pretty{}
+			pretty := &format.Pretty{
+				ColorMode:   param.colorMode.Parse(true),
+				LevelNames:  format.DefaultLevelNames,
+				LevelColors: format.DefaultLevelColors,
 			}
-			param.pretty.Init(tty.Output())
-			buffer := format.NewBuffer(param.pretty,
+
+			buffer := format.NewBuffer(pretty,
 				setupWriter(mocks, param.expect))
 			test.NewAccessor(buffer).Set("err", param.error)
 
 			// When
-			param.setup(t, buffer)
+			param.setup(buffer)
 			result, err := buffer.Bytes()
 
 			// Then
 			assert.Equal(t, param.expectError, err)
 			assert.Equal(t, param.expectString, string(result))
-		}).
-		Cleanup(func() {
-			tty.Close()
 		})
 }

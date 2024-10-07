@@ -3,7 +3,11 @@
 package log
 
 import (
+	"io"
+	"os"
+
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sys/unix"
 
 	"github.com/tkrop/go-config/log/format"
 )
@@ -32,15 +36,15 @@ type ColorModeString format.ColorModeString
 // Color modes.
 const (
 	// ColorOff disables the color mode.
-	ColorOff format.ColorModeString = format.ColorModeOff
+	ColorModeOff format.ColorModeString = format.ColorModeOff
 	// ColorOn enables the color mode.
-	ColorOn format.ColorModeString = format.ColorModeOn
+	ColorModeOn format.ColorModeString = format.ColorModeOn
 	// ColorAuto enables the automatic color mode.
-	ColorAuto format.ColorModeString = format.ColorModeAuto
+	ColorModeAuto format.ColorModeString = format.ColorModeAuto
 	// ColorLevels enables the color mode for log level.
-	ColorLevels format.ColorModeString = format.ColorModeLevels
+	ColorModeLevels format.ColorModeString = format.ColorModeLevels
 	// ColorFields enables the color mode for fields.
-	ColorFields format.ColorModeString = format.ColorModeFields
+	ColorModeFields format.ColorModeString = format.ColorModeFields
 )
 
 // OrderMode is the order mode used for logging.
@@ -48,11 +52,11 @@ type OrderModeString format.OrderModeString
 
 // Order modes.
 const (
-	OrderAuto format.OrderModeString = ""
+	OrderModeAuto format.OrderModeString = ""
 	// OrderOn enables the order mode.
-	OrderOn format.OrderModeString = format.OrderModeOn
+	OrderModeOn format.OrderModeString = format.OrderModeOn
 	// OrderOff disables the order mode.
-	OrderOff format.OrderModeString = format.OrderModeOff
+	OrderModeOff format.OrderModeString = format.OrderModeOff
 )
 
 // Formatter is the formatter used for logging output.
@@ -68,6 +72,16 @@ const (
 	FormatterJSON format.Formatter = format.FormatterJSON
 )
 
+// IsTerminal checks whether the given writer is a terminal.
+func IsTerminal(writer io.Writer) bool {
+	if file, ok := writer.(*os.File); ok {
+		// #nosec G115 // is a safe conversion for files.
+		_, err := unix.IoctlGetTermios(int(file.Fd()), unix.TCGETS)
+		return err == nil
+	}
+	return false
+}
+
 // SetupRus is setting up the given logger using. It sets the formatter, the
 // log level, and the report caller flag. If no logger is given, the standard
 // logger is used.
@@ -80,7 +94,7 @@ func (c *Config) SetupRus(logger *logrus.Logger) *logrus.Logger {
 	// Sets up the log output format.
 	switch c.Formatter {
 	case FormatterText:
-		mode := c.ColorMode.Parse()
+		mode := c.ColorMode.Parse(IsTerminal(logger.Out))
 		logger.SetFormatter(&logrus.TextFormatter{
 			TimestampFormat: c.TimeFormat,
 			FullTimestamp:   true,
@@ -95,10 +109,16 @@ func (c *Config) SetupRus(logger *logrus.Logger) *logrus.Logger {
 		fallthrough
 	default:
 		logger.SetFormatter(&format.Pretty{
-			TimeFormat: c.TimeFormat,
-			ColorMode:  c.ColorMode.Parse(),
+			TimeFormat:  c.TimeFormat,
+			ColorMode:   c.ColorMode.Parse(IsTerminal(logger.Out)),
+			OrderMode:   c.OrderMode.Parse(),
+			LevelNames:  format.DefaultLevelNames,
+			LevelColors: format.DefaultLevelColors,
 		})
 	}
+
+	// Helpful setting in certain debug situations.
+	logger.SetReportCaller(c.Caller)
 
 	// Sets up the log level if given.
 	logLevel, err := logrus.ParseLevel(c.Level)
@@ -112,9 +132,6 @@ func (c *Config) SetupRus(logger *logrus.Logger) *logrus.Logger {
 			"level": c.Level,
 		}).Info("setting up log level")
 	}
-
-	// Helpful setting in certain debug situations.
-	logger.SetReportCaller(c.Caller)
 
 	return logger
 }
