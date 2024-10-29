@@ -56,7 +56,7 @@ func GetEnvName(prefix string, name string) string {
 // config values to initialize the map. The `default` tags are only used, if
 // the config values are zero.
 func New[C any](
-	prefix, name string,
+	prefix, name string, setup ...func(*Reader[C]),
 ) *Reader[C] {
 	r := &Reader[C]{
 		Viper: viper.New(),
@@ -70,6 +70,7 @@ func New[C any](
 	r.SetConfigType("yaml")
 	r.AddConfigPath(".")
 	r.SetSubDefaults("", new(C), true)
+	r.SetDefaults(setup...)
 
 	return r
 }
@@ -78,12 +79,13 @@ func New[C any](
 // and standard values. It is also calling the provide function to customize
 // values and add more defaults.
 func (r *Reader[C]) SetDefaults(
-	setup func(*Reader[C]),
+	setup ...func(*Reader[C]),
 ) *Reader[C] {
-	if setup != nil {
-		setup(r)
+	for _, s := range setup {
+		if s != nil {
+			s(r)
+		}
 	}
-
 	return r
 }
 

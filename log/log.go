@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/sirupsen/logrus"
-	"golang.org/x/sys/unix"
+	"golang.org/x/term"
 
 	"github.com/tkrop/go-config/log/format"
 )
@@ -76,8 +76,7 @@ const (
 func IsTerminal(writer io.Writer) bool {
 	if file, ok := writer.(*os.File); ok {
 		// #nosec G115 // is a safe conversion for files.
-		_, err := unix.IoctlGetTermios(int(file.Fd()), unix.TCGETS)
-		return err == nil
+		return term.IsTerminal(int(file.Fd()))
 	}
 	return false
 }
