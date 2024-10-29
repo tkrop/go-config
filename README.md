@@ -231,14 +231,13 @@ is following the [conventional commit][convent-commit] best practice.
 
 ## Terms of Usage
 
-This software is open source as is under the MIT license. If you start using
-the software, please give it a star, so that I know to be more careful with
-changes. If this project has more than 25 Stars, I will introduce semantic
-versions for changes.
+This software is open source under the MIT license. You can use it without
+restrictions and liabilities. Please give it a star, so that I know. If the
+project has more than 25 Stars, I will introduce semantic versions `v1`.
 
 
 ## Contributing
 
 If you like to contribute, please create an issue and/or pull request with a
 proper description of your proposal or contribution. I will review it and
-provide feedback on it.
+provide feedback on it as fast as possible.
