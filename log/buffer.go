@@ -1,57 +1,11 @@
-// Package format provides common log formatting based on logrus for services,
-// jobs, and commands with integrated configuration loading.
-package format
+package log
 
 import (
-	"bytes"
 	"fmt"
 	"io"
-	"maps"
-	"slices"
-	"sort"
+	"runtime"
 	"strconv"
-
-	log "github.com/sirupsen/logrus"
 )
-
-// Pretty formats logs into a pretty format.
-type Pretty struct {
-	// TimeFormat is defining the time format used for printing timestamps.
-	TimeFormat string
-	// ColorMode is defining the color mode (default = ColorAuto).
-	ColorMode ColorMode
-	// OrderMode is defining the order mode.
-	OrderMode OrderMode
-
-	// LevelNames is defining the names used for marking the different log
-	// levels.
-	LevelNames []string
-	// LevelColors is defining the colors used for marking the different log
-	// levels.
-	LevelColors []string
-}
-
-// Format formats the log entry to a pretty format.
-func (p *Pretty) Format(entry *log.Entry) ([]byte, error) {
-	buffer := NewBuffer(p, &bytes.Buffer{})
-	buffer.WriteString(entry.Time.Format(p.TimeFormat)).
-		WriteByte(' ').WriteLevel(entry.Level).WriteCaller(entry).
-		WriteByte(' ').WriteString(entry.Message)
-
-	for _, key := range p.getSortedKeys(entry.Data) {
-		buffer.WriteByte(' ').WriteData(key, entry.Data[key])
-	}
-	return buffer.WriteByte('\n').Bytes()
-}
-
-// getSortedKeys returns the keys of the given data.
-func (p *Pretty) getSortedKeys(data log.Fields) []string {
-	keys := slices.Collect(maps.Keys(data))
-	if p.OrderMode.CheckFlag(OrderOn) {
-		sort.Strings(keys)
-	}
-	return keys
-}
 
 // Buffer is the interface for writing bytes and strings.
 type BufferWriter interface {
@@ -62,12 +16,14 @@ type BufferWriter interface {
 
 	// Bytes returns the current bytes of the writer.
 	Bytes() []byte
+	// String returns the current string of the writer.
+	String() string
 }
 
 // Buffer is a buffer for the pretty formatter.
 type Buffer struct {
 	// pretty is the pretty formatter of the buffer.
-	pretty *Pretty
+	pretty *Setup
 	// buffer is the bytes buffer used for writing.
 	buffer BufferWriter
 
@@ -76,7 +32,7 @@ type Buffer struct {
 }
 
 // NewBuffer creates a new buffer for the pretty formatter.
-func NewBuffer(p *Pretty, b BufferWriter) *Buffer {
+func NewBuffer(p *Setup, b BufferWriter) *Buffer {
 	return &Buffer{pretty: p, buffer: b}
 }
 
@@ -122,7 +78,7 @@ func (b *Buffer) WriteColored(color, str string) *Buffer {
 }
 
 // WriteLevel writes the given log level to the buffer.
-func (b *Buffer) WriteLevel(level log.Level) *Buffer {
+func (b *Buffer) WriteLevel(level Level) *Buffer {
 	if b.err != nil {
 		return b
 	}
@@ -135,7 +91,7 @@ func (b *Buffer) WriteLevel(level log.Level) *Buffer {
 }
 
 // WriteField writes the given key with the given color to the buffer.
-func (b *Buffer) WriteField(level log.Level, key string) *Buffer {
+func (b *Buffer) WriteField(level Level, key string) *Buffer {
 	if b.err != nil {
 		return b
 	}
@@ -147,12 +103,11 @@ func (b *Buffer) WriteField(level log.Level, key string) *Buffer {
 }
 
 // WriteCaller writes the caller information to the buffer.
-func (b *Buffer) WriteCaller(entry *log.Entry) *Buffer {
-	if b.err != nil || !entry.HasCaller() {
+func (b *Buffer) WriteCaller(caller *runtime.Frame) *Buffer {
+	if b.err != nil || caller == nil {
 		return b
 	}
 
-	caller := entry.Caller
 	return b.WriteByte(' ').WriteByte('[').
 		WriteString(caller.File).WriteByte(':').
 		WriteString(strconv.Itoa(caller.Line)).WriteByte('#').
@@ -181,11 +136,10 @@ func (b *Buffer) WriteData(key string, value any) *Buffer {
 		return b
 	}
 
-	switch key {
-	case log.ErrorKey:
-		return b.WriteField(log.ErrorLevel, key).
+	if key == b.pretty.ErrorName {
+		return b.WriteField(ErrorLevel, key).
 			WriteByte('=').WriteValue(value)
-	default:
+	} else {
 		return b.WriteField(FieldLevel, key).
 			WriteByte('=').WriteValue(value)
 	}
@@ -194,4 +148,9 @@ func (b *Buffer) WriteData(key string, value any) *Buffer {
 // Bytes returns current bytes of the buffer with the current error.
 func (b *Buffer) Bytes() ([]byte, error) {
 	return b.buffer.Bytes(), b.err
+}
+
+// String returns current string of the buffer with the current error.
+func (b *Buffer) String() string {
+	return b.buffer.String()
 }
