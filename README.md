@@ -88,7 +88,7 @@ allows creating multiple configs while applying the setup mechanisms for
 defaults using the following convenience functions:
 
 ```go
-    reader := config.New("<prefix>", "<app-name>", &Config{}).
+    reader := config.New[config.Config]("<prefix>", "<app-name>").
         SetDefaults(func(c *config.ConfigReader[config.Config]{
             c.SetDefault("int", 32)
         }).ReadConfig("main")
@@ -116,17 +116,20 @@ still possible to customize the reader arbitrarily, e.g. with flag support, and
 setup any other config structure by using the original [Viper][viper] interface
 functions.
 
-A special feature provided by [`go-config`][go-config] is to set up the
-defaults using a partial or complete config prototype. While you must provide a
-complete prototype in the `New` constructor, you can provide any sub-prototype
-in the `SetSubDefaults` method as follows:
+A special feature provided by [`go-config`][go-config] is to set up defaults
+using a partial or complete config prototype. While in the `New` constructor
+automatically an empty prototype is constructed and parsed for `default`-tags,
+you can use th `SetDefaultConfig` method to provide any pre-filled (sub-)config
+to updated and extend default values.
 
 ```go
-    reader := config.New("<prefix>", "<app-name>", &config.Config{
+    reader := config.New("<prefix>", "<app-name>")).
+        SetDefaultConfig("", &config.Config{
             Env: "prod",
-        }).SetSubDefaults("<sub-path>", &log.Config{
-            Level: "debug",
         }, false).
+        SetDefaultConfig("log", &log.Config{
+            Level: "debug",
+        }, false)
 ```
 
 
@@ -137,10 +140,15 @@ The [`go-config`][go-config] framework supports to set up a `Logger` in
 out-of-the-box as follows:
 
 ```go
-    logger := config.Log.Setup[Rus|Zero](log.New(...)|nil)
+    logger := config.Log.Setup[Rus|Zero](writer[, logger])
 ```
 
 If no logger is provided, the standard logger is configured and returned.
+
+**Note:** While the config supports [zerolog][zerolog], there is currently no
+real benefit of using it aside of its having a modern interface. Performance
+wise, the necessary transformations for pretty printing logs are a heavy burden
+that likely eats up all performance advantages compared to [logrus][logrus].
 
 [zerolog]: <https://github.com/ra/zerolog>
 [logrus]: <https://github.com/sirupsen/logrus>

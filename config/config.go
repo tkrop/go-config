@@ -69,7 +69,7 @@ func New[C any](
 	r.SetConfigName(GetEnvName(prefix, name))
 	r.SetConfigType("yaml")
 	r.AddConfigPath(".")
-	r.SetSubDefaults("", new(C), true)
+	r.SetDefaultConfig("", new(C), true)
 	r.SetDefaults(setup...)
 
 	return r
@@ -89,12 +89,16 @@ func (r *Reader[C]) SetDefaults(
 	return r
 }
 
-// SetSubDefaults is a convenience method to update the default values of a
-// sub-section configured in the reader by using the given config struct. The
-// config struct is scanned for `default`-tags and values to set the defaults.
+// SetDefaultConfig is a convenience method to update the default values of
+// config in the reader by using the given config struct. The config struct is
+// scanned for `default`-tags and non-zero values to set the defaults using the
+// given key as prefix for constructing the config key-value pairs. This way
+// the default config of a whole config struct as well as any sub-config can be
+// updated.
+//
 // Depending on the `zero` flag the default values are either include setting
 // zero values or ignoring them.
-func (r *Reader[C]) SetSubDefaults(
+func (r *Reader[C]) SetDefaultConfig(
 	key string, config any, zero bool,
 ) *Reader[C] {
 	info := info.GetDefault()

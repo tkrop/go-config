@@ -20,7 +20,7 @@ func TestSetupRus(t *testing.T) {
 			// Given
 			logger := logrus.New()
 			config := config.New[config.Config]("TEST", "test").
-				SetSubDefaults("log", param.config, false).
+				SetDefaultConfig("log", param.config, false).
 				GetConfig(t.Name())
 
 			// When
@@ -503,7 +503,7 @@ func TestPrettyLogRus(t *testing.T) {
 		Run(func(t test.Test, param testPrettyLogRusParam) {
 			// Given
 			config := config.New[config.Config]("X", "app").
-				SetSubDefaults("log", param.config, true).
+				SetDefaultConfig("log", param.config, true).
 				SetDefaults(func(r *config.Reader[config.Config]) {
 					r.SetDefault("log.level", "trace")
 				}).GetConfig("logrus")
