@@ -9,13 +9,6 @@ import (
 	"github.com/tkrop/go-config/log"
 )
 
-const (
-	// Default log level in configuration.
-	defaultLogLevel = "info"
-	// Default report caller flag in configuration.
-	defaultLogCaller = false
-)
-
 var (
 	// otime is a fixed output time string for testing.
 	otime = "2024-10-01 23:07:13.891012345Z"
@@ -102,9 +95,9 @@ type setupParams struct {
 var testSetupParams = map[string]setupParams{
 	"read default config": {
 		config:           &log.Config{},
-		expectLogLevel:   defaultLogLevel,
+		expectLogLevel:   log.DefaultLevel,
 		expectTimeFormat: log.DefaultTimeFormat,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 		expectColorMode:  log.ColorOff,
 		expectOrderMode:  log.OrderOn,
 	},
@@ -115,7 +108,7 @@ var testSetupParams = map[string]setupParams{
 		},
 		expectLogLevel:   log.LevelPanic,
 		expectTimeFormat: log.DefaultTimeFormat,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 		expectColorMode:  log.ColorOff,
 		expectOrderMode:  log.OrderOn,
 	},
@@ -126,7 +119,7 @@ var testSetupParams = map[string]setupParams{
 		},
 		expectLogLevel:   log.LevelFatal,
 		expectTimeFormat: log.DefaultTimeFormat,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 		expectColorMode:  log.ColorOff,
 		expectOrderMode:  log.OrderOn,
 	},
@@ -137,7 +130,7 @@ var testSetupParams = map[string]setupParams{
 		},
 		expectLogLevel:   log.LevelError,
 		expectTimeFormat: log.DefaultTimeFormat,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 		expectColorMode:  log.ColorOff,
 		expectOrderMode:  log.OrderOn,
 	},
@@ -148,7 +141,7 @@ var testSetupParams = map[string]setupParams{
 		},
 		expectLogLevel:   log.LevelWarn,
 		expectTimeFormat: log.DefaultTimeFormat,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 		expectColorMode:  log.ColorOff,
 		expectOrderMode:  log.OrderOn,
 	},
@@ -159,7 +152,7 @@ var testSetupParams = map[string]setupParams{
 		},
 		expectLogLevel:   log.LevelWarning,
 		expectTimeFormat: log.DefaultTimeFormat,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 		expectColorMode:  log.ColorOff,
 		expectOrderMode:  log.OrderOn,
 	},
@@ -170,7 +163,7 @@ var testSetupParams = map[string]setupParams{
 		},
 		expectLogLevel:   log.LevelInfo,
 		expectTimeFormat: log.DefaultTimeFormat,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 		expectColorMode:  log.ColorOff,
 		expectOrderMode:  log.OrderOn,
 	},
@@ -181,7 +174,7 @@ var testSetupParams = map[string]setupParams{
 		},
 		expectLogLevel:   log.LevelDebug,
 		expectTimeFormat: log.DefaultTimeFormat,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 		expectColorMode:  log.ColorOff,
 		expectOrderMode:  log.OrderOn,
 	},
@@ -192,18 +185,18 @@ var testSetupParams = map[string]setupParams{
 		},
 		expectLogLevel:   log.LevelTrace,
 		expectTimeFormat: log.DefaultTimeFormat,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 		expectColorMode:  log.ColorOff,
 		expectOrderMode:  log.OrderOn,
 	},
 
 	"log level invalid": {
 		config: &log.Config{
-			Level: "detail",
+			Level: "invalid",
 		},
-		expectLogLevel:   "info",
+		expectLogLevel:   log.LevelInfo,
 		expectTimeFormat: log.DefaultTimeFormat,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 		expectColorMode:  log.ColorOff,
 		expectOrderMode:  log.OrderOn,
 	},
@@ -212,9 +205,9 @@ var testSetupParams = map[string]setupParams{
 		config: &log.Config{
 			TimeFormat: "2024-12-31",
 		},
-		expectLogLevel:   defaultLogLevel,
+		expectLogLevel:   log.DefaultLevel,
 		expectTimeFormat: "2024-12-31",
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 		expectColorMode:  log.ColorOff,
 		expectOrderMode:  log.OrderOn,
 	},
@@ -223,7 +216,7 @@ var testSetupParams = map[string]setupParams{
 		config: &log.Config{
 			Caller: true,
 		},
-		expectLogLevel:   defaultLogLevel,
+		expectLogLevel:   log.DefaultLevel,
 		expectTimeFormat: log.DefaultTimeFormat,
 		expectLogCaller:  true,
 		expectColorMode:  log.ColorOff,
@@ -234,9 +227,9 @@ var testSetupParams = map[string]setupParams{
 		config: &log.Config{
 			Formatter: log.FormatterText,
 		},
-		expectLogLevel:   defaultLogLevel,
+		expectLogLevel:   log.DefaultLevel,
 		expectTimeFormat: log.DefaultTimeFormat,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 		expectColorMode:  log.ColorOff,
 		expectOrderMode:  log.OrderOn,
 	},
@@ -245,9 +238,9 @@ var testSetupParams = map[string]setupParams{
 		config: &log.Config{
 			Formatter: log.FormatterJSON,
 		},
-		expectLogLevel:   defaultLogLevel,
+		expectLogLevel:   log.DefaultLevel,
 		expectTimeFormat: log.DefaultTimeFormat,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 		expectColorMode:  log.ColorOff,
 		expectOrderMode:  log.OrderOn,
 	},
@@ -256,9 +249,9 @@ var testSetupParams = map[string]setupParams{
 		config: &log.Config{
 			Formatter: log.FormatterPretty,
 		},
-		expectLogLevel:   defaultLogLevel,
+		expectLogLevel:   log.DefaultLevel,
 		expectTimeFormat: log.DefaultTimeFormat,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 		expectColorMode:  log.ColorOff,
 		expectOrderMode:  log.OrderOn,
 	},
@@ -268,11 +261,11 @@ var testSetupParams = map[string]setupParams{
 			Formatter: log.FormatterPretty,
 			ColorMode: log.ColorModeOn,
 		},
-		expectLogLevel:   defaultLogLevel,
+		expectLogLevel:   log.DefaultLevel,
 		expectTimeFormat: log.DefaultTimeFormat,
 		expectColorMode:  log.ColorOn,
 		expectOrderMode:  log.OrderOn,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 	},
 
 	"formatter pretty color-off": {
@@ -280,11 +273,11 @@ var testSetupParams = map[string]setupParams{
 			Formatter: log.FormatterPretty,
 			ColorMode: log.ColorModeOff,
 		},
-		expectLogLevel:   defaultLogLevel,
+		expectLogLevel:   log.DefaultLevel,
 		expectTimeFormat: log.DefaultTimeFormat,
 		expectColorMode:  log.ColorOff,
 		expectOrderMode:  log.OrderOn,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 	},
 
 	"formatter pretty color-levels": {
@@ -292,11 +285,11 @@ var testSetupParams = map[string]setupParams{
 			Formatter: log.FormatterPretty,
 			ColorMode: log.ColorModeLevels,
 		},
-		expectLogLevel:   defaultLogLevel,
+		expectLogLevel:   log.DefaultLevel,
 		expectTimeFormat: log.DefaultTimeFormat,
 		expectColorMode:  log.ColorLevels,
 		expectOrderMode:  log.OrderOn,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 	},
 
 	"formatter pretty color-fields": {
@@ -304,11 +297,11 @@ var testSetupParams = map[string]setupParams{
 			Formatter: log.FormatterPretty,
 			ColorMode: log.ColorModeFields,
 		},
-		expectLogLevel:   defaultLogLevel,
+		expectLogLevel:   log.DefaultLevel,
 		expectTimeFormat: log.DefaultTimeFormat,
 		expectColorMode:  log.ColorFields,
 		expectOrderMode:  log.OrderOn,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 	},
 
 	"formatter pretty color-any": {
@@ -316,11 +309,11 @@ var testSetupParams = map[string]setupParams{
 			Formatter: log.FormatterPretty,
 			ColorMode: "any",
 		},
-		expectLogLevel:   defaultLogLevel,
+		expectLogLevel:   log.DefaultLevel,
 		expectTimeFormat: log.DefaultTimeFormat,
 		expectColorMode:  log.ColorOff,
 		expectOrderMode:  log.OrderOn,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 	},
 
 	"formatter pretty order-on": {
@@ -328,11 +321,11 @@ var testSetupParams = map[string]setupParams{
 			Formatter: log.FormatterPretty,
 			OrderMode: log.OrderModeOn,
 		},
-		expectLogLevel:   defaultLogLevel,
+		expectLogLevel:   log.DefaultLevel,
 		expectTimeFormat: log.DefaultTimeFormat,
 		expectColorMode:  log.ColorOff,
 		expectOrderMode:  log.OrderOn,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 	},
 
 	"formatter pretty order-off": {
@@ -340,11 +333,11 @@ var testSetupParams = map[string]setupParams{
 			Formatter: log.FormatterPretty,
 			OrderMode: log.OrderModeOff,
 		},
-		expectLogLevel:   defaultLogLevel,
+		expectLogLevel:   log.DefaultLevel,
 		expectTimeFormat: log.DefaultTimeFormat,
 		expectColorMode:  log.ColorOff,
 		expectOrderMode:  log.OrderOff,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 	},
 
 	"formatter pretty order-any": {
@@ -352,10 +345,10 @@ var testSetupParams = map[string]setupParams{
 			Formatter: log.FormatterPretty,
 			OrderMode: "any",
 		},
-		expectLogLevel:   defaultLogLevel,
+		expectLogLevel:   log.DefaultLevel,
 		expectTimeFormat: log.DefaultTimeFormat,
 		expectColorMode:  log.ColorOff,
 		expectOrderMode:  log.OrderOff,
-		expectLogCaller:  defaultLogCaller,
+		expectLogCaller:  log.DefaultCaller,
 	},
 }

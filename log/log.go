@@ -9,6 +9,34 @@ import (
 	"golang.org/x/term"
 )
 
+// Default values for the log configuration.
+const (
+	// DefaultLevel is the default log level.
+	DefaultLevel = LevelInfo
+	// Default report caller flag in configuration.
+	DefaultCaller = false
+	// TImeFormat is defining default time format.
+	DefaultTimeFormat = "2006-01-02 15:04:05.999999"
+)
+
+// Default values for the log formatter.
+var (
+	// DefaultLevelColors is the default color mapping for the log levels.
+	DefaultLevelColors = []string{
+		ColorPanic, ColorFatal, ColorError,
+		ColorWarn, ColorInfo, ColorDebug, ColorTrace, ColorField,
+	}
+
+	// DefaultLevelNames is the default name mapping for the log levels.
+	DefaultLevelNames = []string{
+		"PANIC", "FATAL", "ERROR", "WARN",
+		"INFO", "DEBUG", "TRACE", "-",
+	}
+
+	// DefaultErrorName is the default name used for marking errors.
+	DefaultErrorName = "error"
+)
+
 // Log levels.
 const (
 	// LevelPanic is the panic log level.
@@ -120,26 +148,6 @@ const (
 	ColorTrace = ColorMagenta
 	// ColorField is the color code for fields.
 	ColorField = ColorGray
-
-	// TImeFormat is defining default time format.
-	DefaultTimeFormat = "2006-01-02 15:04:05.999999"
-)
-
-var (
-	// DefaultLevelColors is the default color mapping for the log levels.
-	DefaultLevelColors = []string{
-		ColorPanic, ColorFatal, ColorError,
-		ColorWarn, ColorInfo, ColorDebug, ColorTrace, ColorField,
-	}
-
-	// DefaultLevelNames is the default name mapping for the log levels.
-	DefaultLevelNames = []string{
-		"PANIC", "FATAL", "ERROR", "WARN",
-		"INFO", "DEBUG", "TRACE", "-",
-	}
-
-	// DefaultErrorName is the default name used for marking errors.
-	DefaultErrorName = "error"
 )
 
 // ColorModeString is the color mode used for logging.
