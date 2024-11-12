@@ -81,7 +81,10 @@ type Config struct {
 config `struct`s provided by other libraries and components, since you can
 easily create any hierarchy of `struct`s, `slice`s, and even `map[string]`s
 containing native types, based on `int`, `float`, `byte`, `rune`, `complex`,
-and `string`. You can also use `time.Time` and `time.Duration`.
+and `string`. You can also use `time.Time` and `time.Duration`. However, you
+need to add the tag `mapstructure:",squash"`, if you want to extend a config.
+If you do not flatten access via this tag, the inherited structured creates
+a sub-structure named `config`.
 
 As usual in [Viper][viper], you can create your config using the reader that
 allows creating multiple configs while applying the setup mechanisms for
