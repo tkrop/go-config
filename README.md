@@ -91,7 +91,7 @@ allows creating multiple configs while applying the setup mechanisms for
 defaults using the following convenience functions:
 
 ```go
-    reader := config.New[config.Config]("<prefix>", "<app-name>").
+    reader := config.NewReader[config.Config]("<prefix>", "<app-name>").
         SetDefaults(func(c *config.ConfigReader[config.Config]{
             c.SetDefault("int", 32)
         }).ReadConfig("main")
@@ -126,7 +126,7 @@ you can use th `SetDefaultConfig` method to provide any pre-filled (sub-)config
 to updated and extend default values.
 
 ```go
-    reader := config.New("<prefix>", "<app-name>")).
+    reader := config.NewReader("<prefix>", "<app-name>")).
         SetDefaultConfig("", &config.Config{
             Env: "prod",
         }, false).
@@ -143,7 +143,8 @@ The [`go-config`][go-config] framework supports to set up a `Logger` in
 out-of-the-box as follows:
 
 ```go
-    logger := config.Log.Setup[Rus|Zero](writer[, logger])
+    logger := config.Log.SetupRus(writer, logger)
+    logger := config.Log.SetupZero(writer).ZeroLogger()
 ```
 
 If no logger is provided, the standard logger is configured and returned.
@@ -188,7 +189,7 @@ the config reader by using `SetInfo` during creation as follows:
 
 ```go
 func main() {
-    reader := config.New("<prefix>", "<app-name>", &Config{}).
+    reader := config.NewReader("<prefix>", "<app-name>", &Config{}).
         SetInfo(info.New(Path, Version, Build, Revision, Commit, Dirty)).
 }
 ```

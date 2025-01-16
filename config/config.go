@@ -8,12 +8,12 @@ import (
 	"os"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
 	"github.com/tkrop/go-config/info"
 	"github.com/tkrop/go-config/internal/reflect"
-	clog "github.com/tkrop/go-config/log"
+	"github.com/tkrop/go-config/log"
 )
 
 // ErrConfig is a common error to indicate a configuration error.
@@ -32,7 +32,7 @@ type Config struct {
 	// Info default build information.
 	Info *info.Info
 	// Log default logger setup.
-	Log *clog.Config
+	Log *log.Config
 }
 
 // Reader common config reader based on viper.
@@ -51,11 +51,11 @@ func GetEnvName(prefix string, name string) string {
 	return name
 }
 
-// New creates a new config reader with the given prefix, name, and config
-// struct. The config struct is evaluate for default config tags and available
-// config values to initialize the map. The `default` tags are only used, if
-// the config values are zero.
-func New[C any](
+// NewReader creates a new config reader with the given prefix, name, and
+// config struct. The config struct is evaluate for default config tags and
+// available config values to initialize the map. The `default` tags are only
+// used, if the config values are zero.
+func NewReader[C any](
 	prefix, name string, setup ...func(*Reader[C]),
 ) *Reader[C] {
 	r := &Reader[C]{
@@ -133,7 +133,7 @@ func (r *Reader[C]) SetDefault(key string, value any) {
 func (r *Reader[C]) ReadConfig(context string) *Reader[C] {
 	if err := r.ReadInConfig(); err != nil {
 		err := NewErrConfig("loading file", context, err)
-		log.WithFields(log.Fields{
+		logrus.WithFields(logrus.Fields{
 			"context": context,
 		}).WithError(err).Warn("no config file found")
 		if r.GetBool("viper.panic.load") {
@@ -152,7 +152,7 @@ func (r *Reader[C]) GetConfig(context string) *C {
 	config := new(C)
 	if err := r.Unmarshal(config); err != nil {
 		err := NewErrConfig("unmarshal config", context, err)
-		log.WithFields(log.Fields{
+		logrus.WithFields(logrus.Fields{
 			"context": context,
 		}).WithError(err).Error("unmarshal config")
 		if r.GetBool("viper.panic.unmarshal") {
@@ -160,7 +160,7 @@ func (r *Reader[C]) GetConfig(context string) *C {
 		}
 	}
 
-	log.WithFields(log.Fields{
+	logrus.WithFields(logrus.Fields{
 		"context": context,
 		"config":  config,
 	}).Debugf("config loaded")

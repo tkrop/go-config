@@ -19,7 +19,7 @@ func TestSetupRus(t *testing.T) {
 		Run(func(t test.Test, param setupParams) {
 			// Given
 			logger := logrus.New()
-			config := config.New[config.Config]("TEST", "test").
+			config := config.NewReader[config.Config]("TEST", "test").
 				SetDefaultConfig("log", param.config, false).
 				GetConfig(t.Name())
 
@@ -59,7 +59,7 @@ func TestSetupRus(t *testing.T) {
 
 func TestSetupNil(t *testing.T) {
 	// Given
-	config := config.New[config.Config]("TEST", "test").
+	config := config.NewReader[config.Config]("TEST", "test").
 		GetConfig(t.Name())
 
 	// When
@@ -502,7 +502,7 @@ func TestPrettyLogRus(t *testing.T) {
 	test.Map(t, testPrettyLogRusParams).
 		Run(func(t test.Test, param testPrettyLogRusParam) {
 			// Given
-			config := config.New[config.Config]("X", "app").
+			config := config.NewReader[config.Config]("X", "app").
 				SetDefaultConfig("log", param.config, true).
 				SetDefaults(func(r *config.Reader[config.Config]) {
 					r.SetDefault("log.level", "trace")

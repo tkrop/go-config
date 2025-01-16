@@ -65,8 +65,8 @@ func (c *Config) SetupZero(writer io.Writer) *Config {
 	return c
 }
 
-// Zero returns the zerolog logger.
-func (c *Config) Zero() zerolog.Logger {
+// ZeroLogger returns the zerolog logger.
+func (c *Config) ZeroLogger() zerolog.Logger {
 	return c.logger.(zerolog.Logger)
 }
 
