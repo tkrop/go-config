@@ -20,12 +20,12 @@ func TestSetupZero(t *testing.T) {
 	test.Map(t, testSetupParams).
 		Run(func(t test.Test, param setupParams) {
 			// Given
-			config := config.New[config.Config]("TEST", "test").
+			config := config.NewReader[config.Config]("TEST", "test").
 				SetDefaultConfig("log", param.config, false).
 				GetConfig(t.Name())
 
 			// When
-			logger := config.Log.SetupZero(os.Stderr).Zero()
+			logger := config.Log.SetupZero(os.Stderr).ZeroLogger()
 
 			// Then
 			assert.Equal(t, log.ParseLevel(param.expectLogLevel),
@@ -476,12 +476,12 @@ func TestZeroLog(t *testing.T) {
 		Run(func(t test.Test, param testZeroLogParam) {
 			// Given
 			buffer := &bytes.Buffer{}
-			config := config.New[config.Config]("X", "app").
+			config := config.NewReader[config.Config]("X", "app").
 				SetDefaultConfig("log", param.config, true).
 				SetDefaults(func(r *config.Reader[config.Config]) {
 					r.SetDefault("log.level", "trace")
 				}).GetConfig("zerolog")
-			logger := config.Log.SetupZero(buffer).Zero()
+			logger := config.Log.SetupZero(buffer).ZeroLogger()
 			pretty := test.NewAccessor(logger).Get("w").(zerolog.LevelWriterAdapter).
 				Writer.(*log.ZeroLogPretty)
 			pretty.Setup.ColorMode = param.config.ColorMode.Parse(!param.noTerminal)

@@ -90,7 +90,7 @@ func TestConfig(t *testing.T) {
 			if param.setenv != nil {
 				param.setenv(t)
 			}
-			reader := config.New[config.Config]("TC", "test").
+			reader := config.NewReader[config.Config]("TC", "test").
 				SetDefaults(param.setup)
 
 			// When
