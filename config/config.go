@@ -22,7 +22,7 @@ var ErrConfig = errors.New("config")
 // NewErrConfig is a convenience method to create a new config error with the
 // given context wrapping the original error.
 func NewErrConfig(message, context string, err error) error {
-	return fmt.Errorf("%w - %s [%s]: %w", ErrConfig, message, context, err)
+	return fmt.Errorf("%w - %s [%s]: %v", ErrConfig, message, context, err)
 }
 
 // Config common application configuration.

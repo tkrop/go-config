@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/mitchellh/mapstructure"
-	"github.com/spf13/viper"
+	"github.com/ory/viper"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/tkrop/go-config/config"
@@ -75,10 +74,10 @@ var testConfigParams = map[string]testConfigParam{
 			r.SetDefault("info.dirty", "5s")
 		},
 		expect: test.Panic(config.NewErrConfig("unmarshal config",
-			"test", &mapstructure.Error{
-				Errors: []string{"cannot parse 'Info.Dirty' as bool: " +
-					"strconv.ParseBool: parsing \"5s\": invalid syntax"},
-			})),
+			"test", fmt.Errorf("decoding failed due to the following error(s):\n\n%v",
+				"cannot parse 'Info.Dirty' as bool: "+
+					"strconv.ParseBool: parsing \"5s\": invalid syntax",
+			))),
 	},
 }
 
