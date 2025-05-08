@@ -75,8 +75,8 @@ var testConfigParams = map[string]testConfigParam{
 		},
 		expect: test.Panic(config.NewErrConfig("unmarshal config",
 			"test", fmt.Errorf("decoding failed due to the following error(s):\n\n%v",
-				"cannot parse 'Info.Dirty' as bool: "+
-					"strconv.ParseBool: parsing \"5s\": invalid syntax",
+				"'Info.Dirty' cannot parse value as 'bool': "+
+					"strconv.ParseBool: invalid syntax",
 			))),
 	},
 }
