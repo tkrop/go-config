@@ -2,7 +2,7 @@ package coding_test
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	errDecode = fmt.Errorf("decode error")
-	errEncode = fmt.Errorf("encode error")
+	errDecode = errors.New("decode error")
+	errEncode = errors.New("encode error")
 )
 
 type object struct {

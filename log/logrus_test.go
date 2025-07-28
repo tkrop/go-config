@@ -308,7 +308,7 @@ var testPrettyLogRusParams = map[string]testPrettyLogRusParam{
 			Message: "data message",
 			Data:    anyData,
 		},
-		expect: func(t test.Test, result string, err error) {
+		expect: func(t test.Test, result string, _ error) {
 			assert.Contains(t, result, otime[0:26]+" "+
 				levelC(log.PanicLevel)+" "+"data message")
 			assert.Contains(t, result, dataC("key1", "value1"))
