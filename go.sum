@@ -98,8 +98,6 @@ github.com/stretchr/testify v1.10.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf
 github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69rRypqCw=
 github.com/subosito/gotenv v1.6.0 h1:9NlTDc1FTs4qu0DDq7AEtTPNw6SVm7uBMsUCUjABIf8=
 github.com/subosito/gotenv v1.6.0/go.mod h1:Dk4QP5c2W3ibzajGcXpNraDfq2IrhjMIvMSWPKKo0FU=
-github.com/tkrop/go-testing v0.0.26 h1:r6yoQ2t4ZwK8WQH7jEeVXPr8U1nPPRRB2f5ew+4Lzvg=
-github.com/tkrop/go-testing v0.0.26/go.mod h1:qKR+2gpptFA/f5llJcV4Aopg9mDWdDWxbORZ9cIbIok=
 github.com/tkrop/go-testing v0.0.27 h1:k3YPuMlOU4hr4+Hi63s76EBnNoXRfcctg8i7tSpWQ6s=
 github.com/tkrop/go-testing v0.0.27/go.mod h1:SCOLyxH+RoRovG9FBkUC6o8WheUfnXBsKXFWt+WeBL8=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
