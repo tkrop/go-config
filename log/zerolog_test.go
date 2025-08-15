@@ -440,29 +440,29 @@ var testZeroLogParams = map[string]testZeroLogParam{
 	// Test error.
 	"error output": {
 		setup: func(logger zerolog.Logger) {
-			logger.Info().Err(errAny).Msg("error message")
+			logger.Info().Err(assert.AnError).Msg("error message")
 		},
 		expectResult: otime[0:26] + " " +
 			levelC(log.InfoLevel) + " error message " +
-			dataC("error", errAny.Error()) + "\n",
+			dataC("error", assert.AnError.Error()) + "\n",
 	},
 	"error output color-on": {
 		config: log.Config{ColorMode: log.ColorModeOn},
 		setup: func(logger zerolog.Logger) {
-			logger.Info().Err(errAny).Msg("error message")
+			logger.Info().Err(assert.AnError).Msg("error message")
 		},
 		expectResult: otime[0:26] + " " +
 			levelC(log.InfoLevel) + " error message " +
-			dataC("error", errAny.Error()) + "\n",
+			dataC("error", assert.AnError.Error()) + "\n",
 	},
 	"error output color-off": {
 		config: log.Config{ColorMode: log.ColorModeOff},
 		setup: func(logger zerolog.Logger) {
-			logger.Info().Err(errAny).Msg("error message")
+			logger.Info().Err(assert.AnError).Msg("error message")
 		},
 		expectResult: otime[0:26] + " " +
 			level(log.InfoLevel) + " error message " +
-			data("error", errAny.Error()) + "\n",
+			data("error", assert.AnError.Error()) + "\n",
 	},
 }
 

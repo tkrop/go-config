@@ -463,12 +463,12 @@ var testPrettyLogRusParams = map[string]testPrettyLogRusParam{
 			Level:   logrus.PanicLevel,
 			Message: "error message",
 			Data: logrus.Fields{
-				logrus.ErrorKey: errAny,
+				logrus.ErrorKey: assert.AnError,
 			},
 		},
 		expectResult: otime[0:26] + " " +
 			levelC(log.PanicLevel) + " error message " +
-			dataC("error", errAny.Error()) + "\n",
+			dataC("error", assert.AnError.Error()) + "\n",
 	},
 	"error output color-on": {
 		config: log.Config{ColorMode: log.ColorModeOn},
@@ -476,12 +476,12 @@ var testPrettyLogRusParams = map[string]testPrettyLogRusParam{
 			Level:   logrus.PanicLevel,
 			Message: "error message",
 			Data: logrus.Fields{
-				logrus.ErrorKey: errAny,
+				logrus.ErrorKey: assert.AnError,
 			},
 		},
 		expectResult: otime[0:26] + " " +
 			levelC(log.PanicLevel) + " error message " +
-			dataC("error", errAny.Error()) + "\n",
+			dataC("error", assert.AnError.Error()) + "\n",
 	},
 	"error output color-off": {
 		config: log.Config{ColorMode: log.ColorModeOff},
@@ -489,12 +489,12 @@ var testPrettyLogRusParams = map[string]testPrettyLogRusParam{
 			Level:   logrus.PanicLevel,
 			Message: "error message",
 			Data: logrus.Fields{
-				logrus.ErrorKey: errAny,
+				logrus.ErrorKey: assert.AnError,
 			},
 		},
 		expectResult: otime[0:26] + " " +
 			level(log.PanicLevel) + " error message " +
-			data("error", errAny.Error()) + "\n",
+			data("error", assert.AnError.Error()) + "\n",
 	},
 }
 
