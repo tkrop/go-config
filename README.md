@@ -94,17 +94,19 @@ defaults using the following convenience functions:
     reader := config.NewReader[config.Config]("<prefix>", "<app-name>").
         SetDefaults(func(c *config.ConfigReader[config.Config]{
             c.SetDefault("int", 32)
-        }).ReadConfig("main")
+        })
 
-    config := reader.GetConfig("main")
+    config := reader.ReadConfig("main").GetConfig("main")
+    // or
+    config := read.LoadConfig("main")
 ```
 
 This creates a standard config reader with defaults from the given config
-prototype reading in additional defaults from the `<app-name>[-env].yaml`-file
-and environment variables.
+prototype instance. In the final line it is also reading in additional
+defaults from the `<app-name>[-env].yaml`-file and analyzing the environment
+variables using the `ReadConfig` method before assembling the config object.
 
-The defaults provided by the different options are overwriting each other in
-the following order:
+The collected defaults are overwriting each other in the following order:
 
 1. First, the values provided via the `default`-tags are applied.
 2. Second the values provided by the config prototype instance are applied.

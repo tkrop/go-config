@@ -1,7 +1,6 @@
 package log_test
 
 import (
-	"errors"
 	"runtime"
 	"strconv"
 	"time"
@@ -22,8 +21,6 @@ var (
 		Function: "function",
 		Line:     123,
 	}
-	// Arbitrary error for testing.
-	errAny = errors.New("any error")
 )
 
 // caller returns the file and line of the caller.

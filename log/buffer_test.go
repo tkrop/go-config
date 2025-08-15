@@ -39,11 +39,11 @@ type testBufferWriteParam struct {
 var testBufferWriteParams = map[string]testBufferWriteParam{
 	// Test write byte.
 	"write byte error": {
-		error: errAny,
+		error: assert.AnError,
 		setup: func(buffer *log.Buffer) {
 			buffer.WriteByte(' ')
 		},
-		expectError: errAny,
+		expectError: assert.AnError,
 	},
 	"write byte failure": {
 		setup: func(buffer *log.Buffer) {
@@ -51,12 +51,12 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 		},
 		expect: mock.Chain(func(mocks *mock.Mocks) any {
 			return mock.Get(mocks, NewMockBufferWriter).EXPECT().WriteByte(uint8(' ')).
-				DoAndReturn(mocks.Do(log.BufferWriter.WriteByte, errAny))
+				DoAndReturn(mocks.Do(log.BufferWriter.WriteByte, assert.AnError))
 		}, func(mocks *mock.Mocks) any {
 			return mock.Get(mocks, NewMockBufferWriter).EXPECT().Bytes().
 				DoAndReturn(mocks.Do(log.BufferWriter.Bytes, []byte("")))
 		}),
-		expectError: errAny,
+		expectError: assert.AnError,
 	},
 	"write byte": {
 		setup: func(buffer *log.Buffer) {
@@ -67,11 +67,11 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 
 	// Test write string.
 	"write string error": {
-		error: errAny,
+		error: assert.AnError,
 		setup: func(buffer *log.Buffer) {
 			buffer.WriteString("string")
 		},
-		expectError: errAny,
+		expectError: assert.AnError,
 	},
 	"write string failure": {
 		setup: func(buffer *log.Buffer) {
@@ -79,12 +79,12 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 		},
 		expect: mock.Chain(func(mocks *mock.Mocks) any {
 			return mock.Get(mocks, NewMockBufferWriter).EXPECT().WriteString("string").
-				DoAndReturn(mocks.Do(log.BufferWriter.WriteString, 0, errAny))
+				DoAndReturn(mocks.Do(log.BufferWriter.WriteString, 0, assert.AnError))
 		}, func(mocks *mock.Mocks) any {
 			return mock.Get(mocks, NewMockBufferWriter).EXPECT().Bytes().
 				DoAndReturn(mocks.Do(log.BufferWriter.Bytes, []byte("")))
 		}),
-		expectError: errAny,
+		expectError: assert.AnError,
 	},
 	"write string": {
 		setup: func(buffer *log.Buffer) {
@@ -95,11 +95,11 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 
 	// Test write colored.
 	"write colored error": {
-		error: errAny,
+		error: assert.AnError,
 		setup: func(buffer *log.Buffer) {
 			buffer.WriteColored(log.ColorField, "string")
 		},
-		expectError: errAny,
+		expectError: assert.AnError,
 	},
 	"write colored default": {
 		setup: func(buffer *log.Buffer) {
@@ -124,11 +124,11 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 
 	// Test write level.
 	"write level error": {
-		error: errAny,
+		error: assert.AnError,
 		setup: func(buffer *log.Buffer) {
 			buffer.WriteLevel(log.PanicLevel)
 		},
-		expectError: errAny,
+		expectError: assert.AnError,
 	},
 	"write level default": {
 		setup: func(buffer *log.Buffer) {
@@ -153,11 +153,11 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 
 	// Test write colored field.
 	"write field error": {
-		error: errAny,
+		error: assert.AnError,
 		setup: func(buffer *log.Buffer) {
 			buffer.WriteField(log.FieldLevel, "value")
 		},
-		expectError: errAny,
+		expectError: assert.AnError,
 	},
 	"write field default": {
 		setup: func(buffer *log.Buffer) {
@@ -182,11 +182,11 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 
 	// Test write caller.
 	"write caller error": {
-		error: errAny,
+		error: assert.AnError,
 		setup: func(buffer *log.Buffer) {
 			buffer.WriteCaller(anyFrame)
 		},
-		expectError: errAny,
+		expectError: assert.AnError,
 	},
 	"write caller on": {
 		setup: func(buffer *log.Buffer) {
@@ -203,11 +203,11 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 
 	// Test write value.
 	"write value error": {
-		error: errAny,
+		error: assert.AnError,
 		setup: func(buffer *log.Buffer) {
 			buffer.WriteValue("value")
 		},
-		expectError: errAny,
+		expectError: assert.AnError,
 	},
 	"write value string": {
 		setup: func(buffer *log.Buffer) {
@@ -242,11 +242,11 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 
 	// Test write data.
 	"write data error": {
-		error: errAny,
+		error: assert.AnError,
 		setup: func(buffer *log.Buffer) {
 			buffer.WriteData("key", "value")
 		},
-		expectError: errAny,
+		expectError: assert.AnError,
 	},
 	"write data default": {
 		setup: func(buffer *log.Buffer) {
@@ -256,9 +256,9 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 	},
 	"write data color-on error": {
 		setup: func(buffer *log.Buffer) {
-			buffer.WriteData(logrus.ErrorKey, errAny)
+			buffer.WriteData(logrus.ErrorKey, assert.AnError)
 		},
-		expectString: dataC(logrus.ErrorKey, errAny.Error()),
+		expectString: dataC(logrus.ErrorKey, assert.AnError.Error()),
 	},
 	"write data color-on": {
 		colorMode: log.ColorModeOn,
