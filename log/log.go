@@ -13,9 +13,9 @@ import (
 const (
 	// DefaultLevel is the default log level.
 	DefaultLevel = LevelInfo
-	// Default report caller flag in configuration.
+	// DefaultCaller is the default flag state reporting caller information.
 	DefaultCaller = false
-	// TImeFormat is defining default time format.
+	// DefaultTimeFormat is the default time format.
 	DefaultTimeFormat = "2006-01-02 15:04:05.999999"
 )
 
@@ -47,7 +47,7 @@ const (
 	LevelError string = "error"
 	// LevelWarn is the warn log level.
 	LevelWarn string = "warn"
-	// LevelWarn is the warn log level.
+	// LevelWarning is the warning log level (alternative name).
 	LevelWarning string = "warning"
 	// LevelInfo is the info log level.
 	LevelInfo string = "info"
@@ -107,11 +107,11 @@ type Formatter string
 
 // Formatters.
 const (
-	// Pretty is the pretty formatter.
+	// FormatterPretty is the pretty formatter.
 	FormatterPretty Formatter = "pretty"
-	// Text is the text formatter.
+	// FormatterText is the text formatter.
 	FormatterText Formatter = "text"
-	// JSON is the JSON formatter.
+	// FormatterJSON is the JSON formatter.
 	FormatterJSON Formatter = "json"
 )
 
@@ -123,7 +123,7 @@ const (
 	ColorGreen = "1;92"
 	// ColorYellow is the color code for yellow.
 	ColorYellow = "1;93"
-	// ColorGray is the color code for gray.
+	// ColorBlue is the color code for blue.
 	ColorBlue = "1;94"
 	// ColorMagenta is the color code for magenta.
 	ColorMagenta = "1;95"
@@ -155,15 +155,15 @@ type ColorModeString string
 
 // Color mode strings.
 const (
-	// ColorOff disables the color mode.
+	// ColorModeOff disables the color mode.
 	ColorModeOff ColorModeString = "off"
-	// ColorOn enables the color mode.
+	// ColorModeOn enables the color mode.
 	ColorModeOn ColorModeString = "on"
-	// ColorAuto enables the automatic color mode.
+	// ColorModeAuto enables the automatic color mode.
 	ColorModeAuto ColorModeString = "auto"
-	// ColorLevel enables the color mode for log level.
+	// ColorModeLevels enables the color mode for log level.
 	ColorModeLevels ColorModeString = "levels"
-	// ColorFields enables the color mode for fields.
+	// ColorModeFields enables the color mode for fields.
 	ColorModeFields ColorModeString = "fields"
 )
 

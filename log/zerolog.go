@@ -97,6 +97,7 @@ func NewZeroLogPretty(c *Config, writer io.Writer) *ZeroLogPretty {
 	}
 }
 
+// FormatTimestamp formats the timestamp.
 func (s *Setup) FormatTimestamp(i any) string {
 	if timestamp, ok := i.(string); ok {
 		if ttime, err := time.Parse(time.RFC3339, timestamp); err == nil {
@@ -107,7 +108,7 @@ func (s *Setup) FormatTimestamp(i any) string {
 	return fmt.Sprintf("%v", i)
 }
 
-// Format formats the log entry.
+// FormatLevel formats the log level output.
 func (s *Setup) FormatLevel(i any) string {
 	if level, ok := i.(string); ok {
 		level := ParseLevel(level)

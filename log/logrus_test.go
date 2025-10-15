@@ -508,10 +508,10 @@ func TestPrettyLogRus(t *testing.T) {
 					r.SetDefault("log.level", "trace")
 				}).GetConfig("logrus")
 			pretty := config.Log.SetupRus(os.Stderr, logrus.New()).Formatter
-			pretty.(*log.LogRusPretty).Setup.
+			pretty.(*log.LogRusPretty).
 				ColorMode = param.config.ColorMode.Parse(!param.noTerminal)
 
-			if param.entry.Time == (time.Time{}) {
+			if param.entry.Time.Equal(time.Time{}) {
 				time, err := time.Parse(time.RFC3339Nano, itime)
 				assert.NoError(t, err)
 				param.entry.Time = time

@@ -61,8 +61,8 @@ func TestSetupZero(t *testing.T) {
 				assert.Equal(t, os.Stderr, writer.Out)
 				assert.Equal(t, param.expectTimeFormat, writer.Setup.TimeFormat)
 				assert.Equal(t, param.expectTimeFormat, writer.ConsoleWriter.TimeFormat)
-				assert.Equal(t, param.expectColorMode, writer.Setup.ColorMode)
-				assert.Equal(t, param.expectOrderMode, writer.Setup.OrderMode)
+				assert.Equal(t, param.expectColorMode, writer.ColorMode)
+				assert.Equal(t, param.expectOrderMode, writer.OrderMode)
 			}
 
 			// Check if the hooks are set up with caller hook.
@@ -484,7 +484,7 @@ func TestZeroLog(t *testing.T) {
 			logger := config.Log.SetupZero(buffer).ZeroLogger()
 			pretty := test.NewAccessor(logger).Get("w").(zerolog.LevelWriterAdapter).
 				Writer.(*log.ZeroLogPretty)
-			pretty.Setup.ColorMode = param.config.ColorMode.Parse(!param.noTerminal)
+			pretty.ColorMode = param.config.ColorMode.Parse(!param.noTerminal)
 
 			if param.expect != nil {
 				// Then

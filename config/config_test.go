@@ -1,9 +1,13 @@
 package config_test
 
 import (
+	"errors"
 	"fmt"
+	"reflect"
+	"strconv"
 	"testing"
 
+	"github.com/go-viper/mapstructure/v2"
 	"github.com/ory/viper"
 	"github.com/stretchr/testify/assert"
 
@@ -67,7 +71,7 @@ var testConfigParams = map[string]testConfigParam{
 				Set("name", "test").Build())),
 	},
 
-	"panic after unmarschal failure": {
+	"panic after unmarshal failure": {
 		setup: func(r *config.Reader[config.Config]) {
 			r.AddConfigPath("fixtures")
 			r.SetDefault("viper.panic.unmarshal", true)
@@ -79,10 +83,27 @@ var testConfigParams = map[string]testConfigParam{
 					"strconv.ParseBool: invalid syntax",
 			))),
 	},
+	// TODO: Improve error wrapping test for unmarshal failure.
+	"panic after unmarshal failure next": {
+		setup: func(r *config.Reader[config.Config]) {
+			r.AddConfigPath("fixtures")
+			r.SetDefault("viper.panic.unmarshal", true)
+			r.SetDefault("info.dirty", "5s")
+		},
+		expect: test.Panic(config.NewErrConfig("unmarshal config",
+			"test", fmt.Errorf("decoding failed due to the following error(s):\n\n%w",
+				errors.Join(test.NewBuilder[*mapstructure.DecodeError]().
+					Set("name", "Info.Dirty").
+					Set("err", &mapstructure.ParseError{
+						Expected: reflect.ValueOf(true), Value: "5s",
+						Err: &strconv.NumError{Func: "ParseBool", Num: "5s"},
+					}).Build())))),
+	},
 }
 
 func TestConfig(t *testing.T) {
 	test.Map(t, testConfigParams).
+		Filter("panic-after-unmarshal-failure-next", false).
 		RunSeq(func(t test.Test, param testConfigParam) {
 			// Given
 			mock.NewMocks(t).Expect(param.expect)

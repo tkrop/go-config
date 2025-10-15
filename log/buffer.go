@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-// Buffer is the interface for writing bytes and strings.
+// BufferWriter is the interface for writing bytes and strings.
 type BufferWriter interface {
 	// WriteByte writes the given byte to the writer.
 	io.ByteWriter
@@ -114,7 +114,7 @@ func (b *Buffer) WriteCaller(caller *runtime.Frame) *Buffer {
 		WriteString(caller.Function).WriteByte(']')
 }
 
-// WriteString writes the given value to the buffer.
+// WriteValue writes the given value to the buffer.
 func (b *Buffer) WriteValue(value any) *Buffer {
 	if b.err != nil {
 		return b
