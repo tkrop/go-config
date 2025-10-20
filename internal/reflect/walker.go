@@ -52,7 +52,7 @@ func (w *TagWalker) walk(
 		// }
 		w.walk(key, value.Elem(), call)
 	case reflect.Slice, reflect.Array:
-		for index := 0; index < value.Len(); index++ {
+		for index := range value.Len() {
 			nkey := w.key(key, strconv.Itoa(index))
 			w.walk(nkey, value.Index(index), call)
 		}
@@ -78,8 +78,7 @@ func (w *TagWalker) walkStruct(
 	call func(path string, value any),
 ) {
 	vtype := value.Type()
-	num := value.NumField()
-	for index := 0; index < num; index++ {
+	for index := range value.NumField() {
 		field := vtype.Field(index)
 		if field.IsExported() {
 			w.walkField(w.field(key, field),

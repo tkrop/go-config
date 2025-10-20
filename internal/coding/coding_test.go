@@ -24,9 +24,9 @@ type object struct {
 }
 
 type delegate struct {
-	Type  string `json:"type" yaml:"type"`
-	Value string `json:"value,omitempty" yaml:"value,omitempty"`
-	Flag  bool   `json:"flag" yaml:"flag"`
+	Type  string `yaml:"type" json:"type"`
+	Value string `yaml:"value,omitempty" json:"value,omitempty"`
+	Flag  bool   `yaml:"flag" json:"flag"`
 }
 
 func (o *object) MarshalJSON() ([]byte, error) {
