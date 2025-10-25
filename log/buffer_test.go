@@ -36,7 +36,7 @@ type testBufferWriteParam struct {
 	expectString string
 }
 
-var testBufferWriteParams = map[string]testBufferWriteParam{
+var bufferWriteTestCases = map[string]testBufferWriteParam{
 	// Test write byte.
 	"write byte error": {
 		error: assert.AnError,
@@ -277,7 +277,7 @@ var testBufferWriteParams = map[string]testBufferWriteParam{
 }
 
 func TestBufferWrite(t *testing.T) {
-	test.Map(t, testBufferWriteParams).
+	test.Map(t, bufferWriteTestCases).
 		Run(func(t test.Test, param testBufferWriteParam) {
 			// Given
 			mocks := mock.NewMocks(t).Expect(param.expect)

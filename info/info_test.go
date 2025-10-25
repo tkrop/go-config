@@ -25,7 +25,7 @@ type InfoParams struct {
 	expectInfo *info.Info
 }
 
-var testInfoParams = map[string]InfoParams{
+var infoTestCases = map[string]InfoParams{
 	"nil build info": {
 		info:       info.New("", "", "", "", "", ""),
 		expectInfo: info.New("", "", "", "", "", ""),
@@ -146,7 +146,7 @@ var testInfoParams = map[string]InfoParams{
 }
 
 func TestUseDebug(t *testing.T) {
-	test.Map(t, testInfoParams).
+	test.Map(t, infoTestCases).
 		Run(func(t test.Test, param InfoParams) {
 			// When
 			info := param.info.UseDebug(param.build, true).

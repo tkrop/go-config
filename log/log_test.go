@@ -89,7 +89,7 @@ type setupParams struct {
 	expectOrderMode  log.OrderMode
 }
 
-var testSetupParams = map[string]setupParams{
+var setupTestCases = map[string]setupParams{
 	"read default config": {
 		config:           &log.Config{},
 		expectLogLevel:   log.DefaultLevel,

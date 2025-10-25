@@ -99,7 +99,7 @@ type StringParams struct {
 	expectResult any
 }
 
-var testStringParams = map[string]StringParams{
+var stringTestCases = map[string]StringParams{
 	// Type UNKNOWN tests.
 	"unknown nil object": {
 		ctype:        coding.TypeUnkown,
@@ -179,7 +179,7 @@ var testStringParams = map[string]StringParams{
 }
 
 func TestToFromString(t *testing.T) {
-	test.Map(t, testStringParams).
+	test.Map(t, stringTestCases).
 		Run(func(t test.Test, param StringParams) {
 			// Given
 			object := param.from

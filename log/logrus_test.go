@@ -15,7 +15,7 @@ import (
 )
 
 func TestSetupRus(t *testing.T) {
-	test.Map(t, testSetupParams).
+	test.Map(t, setupTestCases).
 		Run(func(t test.Test, param setupParams) {
 			// Given
 			logger := logrus.New()
@@ -84,7 +84,7 @@ type testPrettyLogRusParam struct {
 	expectResult string
 }
 
-var testPrettyLogRusParams = map[string]testPrettyLogRusParam{
+var prettyLogRusTestCases = map[string]testPrettyLogRusParam{
 	// Test levels with default.
 	"level panic default": {
 		config: log.Config{Level: "panic"},
@@ -499,7 +499,7 @@ var testPrettyLogRusParams = map[string]testPrettyLogRusParam{
 }
 
 func TestPrettyLogRus(t *testing.T) {
-	test.Map(t, testPrettyLogRusParams).
+	test.Map(t, prettyLogRusTestCases).
 		Run(func(t test.Test, param testPrettyLogRusParam) {
 			// Given
 			config := config.NewReader[config.Config]("X", "app").

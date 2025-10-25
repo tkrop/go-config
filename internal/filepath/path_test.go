@@ -19,7 +19,7 @@ type testNormalizeParam struct {
 	expectPath string
 }
 
-var testNormalizeParams = map[string]testNormalizeParam{
+var normalizeTestCases = map[string]testNormalizeParam{
 	"path empty": {
 		path:       "",
 		expectPath: currentDir,
@@ -62,7 +62,7 @@ var testNormalizeParams = map[string]testNormalizeParam{
 }
 
 func TestNormalize(t *testing.T) {
-	test.Map(t, testNormalizeParams).
+	test.Map(t, normalizeTestCases).
 		RunSeq(func(t test.Test, param testNormalizeParam) {
 			// Given
 			if param.setup != nil {
