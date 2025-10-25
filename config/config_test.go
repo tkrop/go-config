@@ -27,7 +27,7 @@ type testConfigParam struct {
 	expectLogLevel string
 }
 
-var testConfigParams = map[string]testConfigParam{
+var configTestCases = map[string]testConfigParam{
 	"default config without file": {
 		expectEnv:      "prod",
 		expectLogLevel: "info",
@@ -102,7 +102,7 @@ var testConfigParams = map[string]testConfigParam{
 }
 
 func TestConfig(t *testing.T) {
-	test.Map(t, testConfigParams).
+	test.Map(t, configTestCases).
 		Filter("panic-after-unmarshal-failure-next", false).
 		RunSeq(func(t test.Test, param testConfigParam) {
 			// Given

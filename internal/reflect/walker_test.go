@@ -37,8 +37,8 @@ type tagWalkerParam struct {
 
 //revive:disable:nested-structs // simplifies test cases a lot.
 
-// testTagWalkerParams contains test cases for TagWalker.Walk.
-var testTagWalkerParams = map[string]tagWalkerParam{
+// tagWalkerTestCases contains test cases for TagWalker.Walk.
+var tagWalkerTestCases = map[string]tagWalkerParam{
 	// Test build-in values.
 	"nil": {
 		value: nil,
@@ -627,7 +627,7 @@ var testTagWalkerParams = map[string]tagWalkerParam{
 
 // TestTagWalker_Walk tests TagWalker.Walk.
 func TestTagWalker_Walk(t *testing.T) {
-	test.Map(t, testTagWalkerParams).
+	test.Map(t, tagWalkerTestCases).
 		Run(func(t test.Test, param tagWalkerParam) {
 			// Given
 			mocks := mock.NewMocks(t).Expect(param.expect)
