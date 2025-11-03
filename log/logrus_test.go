@@ -76,7 +76,7 @@ var anyData = logrus.Fields{
 	"key2": "value2",
 }
 
-type testPrettyLogRusParam struct {
+type PrettyLogRusParams struct {
 	noTerminal   bool
 	config       log.Config
 	entry        *logrus.Entry
@@ -84,7 +84,7 @@ type testPrettyLogRusParam struct {
 	expectResult string
 }
 
-var prettyLogRusTestCases = map[string]testPrettyLogRusParam{
+var prettyLogRusTestCases = map[string]PrettyLogRusParams{
 	// Test levels with default.
 	"level panic default": {
 		config: log.Config{Level: "panic"},
@@ -500,7 +500,7 @@ var prettyLogRusTestCases = map[string]testPrettyLogRusParam{
 
 func TestPrettyLogRus(t *testing.T) {
 	test.Map(t, prettyLogRusTestCases).
-		Run(func(t test.Test, param testPrettyLogRusParam) {
+		Run(func(t test.Test, param PrettyLogRusParams) {
 			// Given
 			config := config.NewReader[config.Config]("X", "app").
 				SetDefaultConfig("log", param.config, true).

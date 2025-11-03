@@ -78,7 +78,7 @@ func TestSetupZero(t *testing.T) {
 		})
 }
 
-type testZeroLogParam struct {
+type ZeroLogParams struct {
 	config       log.Config
 	noTerminal   bool
 	setup        func(zerolog.Logger)
@@ -86,7 +86,7 @@ type testZeroLogParam struct {
 	expectResult string
 }
 
-var zeroLogTestCases = map[string]testZeroLogParam{
+var zeroLogTestCases = map[string]ZeroLogParams{
 	// Test levels with default.
 	"level panic default": {
 		config: log.Config{Level: "panic"},
@@ -473,7 +473,7 @@ func TestZeroLog(t *testing.T) {
 
 	test.Map(t, zeroLogTestCases).
 		// Filter("level-panic-color-on", true).
-		Run(func(t test.Test, param testZeroLogParam) {
+		Run(func(t test.Test, param ZeroLogParams) {
 			// Given
 			buffer := &bytes.Buffer{}
 			config := config.NewReader[config.Config]("X", "app").
@@ -506,13 +506,13 @@ func TestZeroLog(t *testing.T) {
 		})
 }
 
-type testSetupFormatParam struct {
+type SetupFormatParams struct {
 	config *log.Config
 	call   func(*log.Setup) string
 	expect string
 }
 
-var setupFormatTestCases = map[string]testSetupFormatParam{
+var setupFormatTestCases = map[string]SetupFormatParams{
 	// Test time format.
 	"time default": {
 		config: &log.Config{
@@ -919,7 +919,7 @@ var setupFormatTestCases = map[string]testSetupFormatParam{
 func TestSetupFormat(t *testing.T) {
 	test.Map(t, setupFormatTestCases).
 		// Filter("level-panic", true).
-		RunSeq(func(t test.Test, param testSetupFormatParam) {
+		RunSeq(func(t test.Test, param SetupFormatParams) {
 			// Given
 			s := param.config.Setup(os.Stderr)
 

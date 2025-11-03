@@ -27,7 +27,7 @@ func setupWriter(
 	return &bytes.Buffer{}
 }
 
-type testBufferWriteParam struct {
+type BufferWriteParams struct {
 	colorMode    log.ColorModeString
 	error        error
 	setup        func(*log.Buffer)
@@ -36,7 +36,7 @@ type testBufferWriteParam struct {
 	expectString string
 }
 
-var bufferWriteTestCases = map[string]testBufferWriteParam{
+var bufferWriteTestCases = map[string]BufferWriteParams{
 	// Test write byte.
 	"write byte error": {
 		error: assert.AnError,
@@ -278,7 +278,7 @@ var bufferWriteTestCases = map[string]testBufferWriteParam{
 
 func TestBufferWrite(t *testing.T) {
 	test.Map(t, bufferWriteTestCases).
-		Run(func(t test.Test, param testBufferWriteParam) {
+		Run(func(t test.Test, param BufferWriteParams) {
 			// Given
 			mocks := mock.NewMocks(t).Expect(param.expect)
 			pretty := &log.Setup{
