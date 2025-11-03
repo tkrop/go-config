@@ -9,7 +9,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
-	github.com/tkrop/go-testing v0.0.34
+	github.com/tkrop/go-testing v0.0.36
 	go.uber.org/mock v0.6.0
 	gopkg.in/yaml.v3 v3.0.1
 )

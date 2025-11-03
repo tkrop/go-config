@@ -12,14 +12,14 @@ import (
 
 var currentDir, _ = os.Getwd()
 
-type testNormalizeParam struct {
+type NormalizeParams struct {
 	path       string
 	setup      func(test.Test)
 	clean      func(test.Test)
 	expectPath string
 }
 
-var normalizeTestCases = map[string]testNormalizeParam{
+var normalizeTestCases = map[string]NormalizeParams{
 	"path empty": {
 		path:       "",
 		expectPath: currentDir,
@@ -63,7 +63,7 @@ var normalizeTestCases = map[string]testNormalizeParam{
 
 func TestNormalize(t *testing.T) {
 	test.Map(t, normalizeTestCases).
-		RunSeq(func(t test.Test, param testNormalizeParam) {
+		RunSeq(func(t test.Test, param NormalizeParams) {
 			// Given
 			if param.setup != nil {
 				param.setup(t)

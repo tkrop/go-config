@@ -27,8 +27,8 @@ func Call(path string, value any) mock.SetupFunc {
 	}
 }
 
-// tagWalkerParam contains a value and the expected tags.
-type tagWalkerParam struct {
+// TagWalkerParams contains a value and the expected tags.
+type TagWalkerParams struct {
 	value  any
 	key    string
 	zero   bool
@@ -38,7 +38,7 @@ type tagWalkerParam struct {
 //revive:disable:nested-structs // simplifies test cases a lot.
 
 // tagWalkerTestCases contains test cases for TagWalker.Walk.
-var tagWalkerTestCases = map[string]tagWalkerParam{
+var tagWalkerTestCases = map[string]TagWalkerParams{
 	// Test build-in values.
 	"nil": {
 		value: nil,
@@ -628,7 +628,7 @@ var tagWalkerTestCases = map[string]tagWalkerParam{
 // TestTagWalker_Walk tests TagWalker.Walk.
 func TestTagWalker_Walk(t *testing.T) {
 	test.Map(t, tagWalkerTestCases).
-		Run(func(t test.Test, param tagWalkerParam) {
+		Run(func(t test.Test, param TagWalkerParams) {
 			// Given
 			mocks := mock.NewMocks(t).Expect(param.expect)
 			walker := reflect.NewTagWalker("tag", "map", param.zero)

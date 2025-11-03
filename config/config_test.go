@@ -19,7 +19,7 @@ import (
 
 var configPaths = []string{filepath.Normalize(".")}
 
-type testConfigParam struct {
+type ConfigParams struct {
 	setenv         func(test.Test)
 	setup          func(*config.Reader[config.Config])
 	expect         mock.SetupFunc
@@ -27,7 +27,7 @@ type testConfigParam struct {
 	expectLogLevel string
 }
 
-var configTestCases = map[string]testConfigParam{
+var configTestCases = map[string]ConfigParams{
 	"default config without file": {
 		expectEnv:      "prod",
 		expectLogLevel: "info",
@@ -104,7 +104,7 @@ var configTestCases = map[string]testConfigParam{
 func TestConfig(t *testing.T) {
 	test.Map(t, configTestCases).
 		Filter("panic-after-unmarshal-failure-next", false).
-		RunSeq(func(t test.Test, param testConfigParam) {
+		RunSeq(func(t test.Test, param ConfigParams) {
 			// Given
 			mock.NewMocks(t).Expect(param.expect)
 			if param.setenv != nil {
