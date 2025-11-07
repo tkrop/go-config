@@ -4,6 +4,7 @@ package filepath
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 )
 
 // Normalize the given path by expanding environment variables, resolving the
@@ -11,7 +12,7 @@ import (
 func Normalize(path string) string {
 	path = os.ExpandEnv(path)
 
-	if filepath.IsAbs(path) {
+	if runtime.GOOS != "darwin" && filepath.IsAbs(path) {
 		return filepath.Clean(path)
 	}
 

@@ -1,6 +1,6 @@
 module github.com/tkrop/go-config
 
-go 1.25.3
+go 1.25.4
 
 require (
 	github.com/go-viper/mapstructure/v2 v2.4.0
@@ -9,7 +9,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
-	github.com/tkrop/go-testing v0.0.36
+	github.com/tkrop/go-testing v0.0.41
 	go.uber.org/mock v0.6.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -23,7 +23,7 @@ require (
 	github.com/pelletier/go-toml v1.2.0 // indirect
 	github.com/spf13/jwalterweatherman v1.0.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/sys v0.37.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
 	gopkg.in/ini.v1 v1.51.0 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 )

@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tkrop/go-config/log"
 	"github.com/tkrop/go-testing/mock"
+	"github.com/tkrop/go-testing/reflect"
 	"github.com/tkrop/go-testing/test"
 )
 
@@ -290,7 +291,7 @@ func TestBufferWrite(t *testing.T) {
 
 			buffer := log.NewBuffer(pretty,
 				setupWriter(mocks, param.expect))
-			test.NewAccessor(buffer).Set("err", param.error)
+			reflect.NewAccessor(buffer).Set("err", param.error)
 
 			// When
 			param.setup(buffer)

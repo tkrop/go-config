@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tkrop/go-testing/mock"
+	"github.com/tkrop/go-testing/reflect"
 	"github.com/tkrop/go-testing/test"
 
 	"github.com/tkrop/go-config/config"
@@ -32,7 +33,7 @@ func TestSetupZero(t *testing.T) {
 				log.ParseLevel(logger.GetLevel().String()))
 
 			// Check if the writer is set up correctly.
-			writer := test.NewAccessor(logger).Get("w")
+			writer := reflect.NewAccessor(logger).Get("w")
 			require.IsType(t, zerolog.LevelWriterAdapter{}, writer)
 			adapter, ok := writer.(zerolog.LevelWriterAdapter)
 			require.True(t, ok)
@@ -66,7 +67,7 @@ func TestSetupZero(t *testing.T) {
 			}
 
 			// Check if the hooks are set up with caller hook.
-			hooks := test.NewAccessor(logger).Get("hooks")
+			hooks := reflect.NewAccessor(logger).Get("hooks")
 			require.IsType(t, []zerolog.Hook{}, hooks)
 			hookSlice, ok := hooks.([]zerolog.Hook)
 			require.True(t, ok)
@@ -482,8 +483,8 @@ func TestZeroLog(t *testing.T) {
 					r.SetDefault("log.level", "trace")
 				}).GetConfig("zerolog")
 			logger := config.Log.SetupZero(buffer).ZeroLogger()
-			pretty := test.NewAccessor(logger).Get("w").(zerolog.LevelWriterAdapter).
-				Writer.(*log.ZeroLogPretty)
+			pretty := reflect.NewAccessor(logger).
+				Get("w").(zerolog.LevelWriterAdapter).Writer.(*log.ZeroLogPretty)
 			pretty.ColorMode = param.config.ColorMode.Parse(!param.noTerminal)
 
 			if param.expect != nil {

@@ -14,6 +14,7 @@ import (
 	"github.com/tkrop/go-config/config"
 	"github.com/tkrop/go-config/internal/filepath"
 	"github.com/tkrop/go-testing/mock"
+	ref "github.com/tkrop/go-testing/reflect"
 	"github.com/tkrop/go-testing/test"
 )
 
@@ -66,7 +67,7 @@ var configTestCases = map[string]ConfigParams{
 			r.SetDefault("viper.panic.load", true)
 		},
 		expect: test.Panic(config.NewErrConfig("loading file", "test",
-			test.NewBuilder[viper.ConfigFileNotFoundError]().
+			ref.NewBuilder[viper.ConfigFileNotFoundError]().
 				Set("locations", fmt.Sprintf("%s", configPaths)).
 				Set("name", "test").Build())),
 	},
@@ -92,7 +93,7 @@ var configTestCases = map[string]ConfigParams{
 		},
 		expect: test.Panic(config.NewErrConfig("unmarshal config",
 			"test", fmt.Errorf("decoding failed due to the following error(s):\n\n%w",
-				errors.Join(test.NewBuilder[*mapstructure.DecodeError]().
+				errors.Join(ref.NewBuilder[*mapstructure.DecodeError]().
 					Set("name", "Info.Dirty").
 					Set("err", &mapstructure.ParseError{
 						Expected: reflect.ValueOf(true), Value: "5s",
@@ -103,7 +104,8 @@ var configTestCases = map[string]ConfigParams{
 
 func TestConfig(t *testing.T) {
 	test.Map(t, configTestCases).
-		Filter("panic-after-unmarshal-failure-next", false).
+		Filter(test.Not(test.Pattern[ConfigParams](
+			"panic-after-unmarshal-failure-next"))).
 		RunSeq(func(t test.Test, param ConfigParams) {
 			// Given
 			mock.NewMocks(t).Expect(param.expect)

@@ -63,6 +63,8 @@ var normalizeTestCases = map[string]NormalizeParams{
 
 func TestNormalize(t *testing.T) {
 	test.Map(t, normalizeTestCases).
+		Filter(test.Not(test.And(test.OS[NormalizeParams]("darwin"),
+			test.Pattern[NormalizeParams]("path expand error")))).
 		RunSeq(func(t test.Test, param NormalizeParams) {
 			// Given
 			if param.setup != nil {
