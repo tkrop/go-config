@@ -3,6 +3,9 @@ package config_test
 import (
 	"errors"
 	"fmt"
+	"os/exec"
+	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/ory/viper"
@@ -34,6 +37,14 @@ func newConfig(
 	config.Log.Level = level
 
 	return config
+}
+
+func isRepoDirty() bool {
+	if out, err := exec.Command("git", "status",
+		"--porcelain").Output(); err == nil {
+		return strings.TrimSpace(string(out)) != ""
+	}
+	return false
 }
 
 type ConfigParams struct {
@@ -122,7 +133,13 @@ var configTestCases = map[string]ConfigParams{
 					}{}, false)
 				})
 		},
-		expect: newConfig("prod", "info", nil),
+		expect: newConfig("prod", "info", func(info *info.Info) {
+			info.Path = "github.com/tkrop/go-config"
+			info.Go = runtime.Version()[2:]
+			info.Platform = runtime.GOOS + "/" + runtime.GOARCH
+			info.Compiler = runtime.Compiler
+			info.Dirty = isRepoDirty()
+		}),
 	},
 
 	"panic on default config with invalid tag": {

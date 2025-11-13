@@ -105,7 +105,7 @@ func New(
 		Dirty:    DirtyParse(dirty),
 		Go:       runtime.Version()[2:],
 		Compiler: runtime.Compiler,
-		Platform: fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
+		Platform: runtime.GOOS + "/" + runtime.GOARCH,
 	}).UseDebug(debug.ReadBuildInfo()).AdjustVersion()
 }
 
