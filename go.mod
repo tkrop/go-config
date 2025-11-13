@@ -3,13 +3,12 @@ module github.com/tkrop/go-config
 go 1.25.4
 
 require (
-	github.com/go-viper/mapstructure/v2 v2.4.0
 	github.com/ory/viper v1.7.5
 	github.com/rs/zerolog v1.34.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
-	github.com/tkrop/go-testing v0.0.41
+	github.com/tkrop/go-testing v0.0.44
 	go.uber.org/mock v0.6.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -17,6 +16,7 @@ require (
 require (
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/dgraph-io/ristretto v0.0.1 // indirect
+	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mitchellh/mapstructure v1.1.2 // indirect
@@ -40,6 +40,6 @@ require (
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
-	golang.org/x/term v0.36.0
-	golang.org/x/text v0.30.0 // indirect
+	golang.org/x/term v0.37.0
+	golang.org/x/text v0.31.0 // indirect
 )

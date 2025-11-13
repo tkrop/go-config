@@ -1,11 +1,15 @@
 package reflect_test
 
 import (
+	"fmt"
+	"strconv"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/tkrop/go-config/internal/reflect"
 	"github.com/tkrop/go-testing/mock"
 	"github.com/tkrop/go-testing/test"
+	"gopkg.in/yaml.v3"
 )
 
 //revive:disable:line-length-limit // go:generate line length.
@@ -33,6 +37,7 @@ type TagWalkerParams struct {
 	key    string
 	zero   bool
 	expect mock.SetupFunc
+	error  error
 }
 
 //revive:disable:nested-structs // simplifies test cases a lot.
@@ -113,7 +118,7 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 	},
 
 	// Test build-in slice values.
-	"slice-bool": {
+	"slice-bool-values": {
 		value: []bool{true, false},
 		zero:  true,
 		expect: mock.Chain(
@@ -121,7 +126,7 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 			Call("1", false),
 		),
 	},
-	"slice-int": {
+	"slice-int-values": {
 		value: []int{1, 0},
 		zero:  true,
 		expect: mock.Chain(
@@ -129,7 +134,7 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 			Call("1", 0),
 		),
 	},
-	"slice-uint": {
+	"slice-uint-values": {
 		value: []uint{1, 0},
 		zero:  true,
 		expect: mock.Chain(
@@ -137,7 +142,7 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 			Call("1", uint(0)),
 		),
 	},
-	"slice-float": {
+	"slice-float-values": {
 		value: []float64{1.0, 0.0},
 		zero:  true,
 		expect: mock.Chain(
@@ -145,15 +150,15 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 			Call("1", 0.0),
 		),
 	},
-	"slice-complex": {
-		value: []complex128{1.0, 0.0},
+	"slice-complex-values": {
+		value: []complex128{1 + 2i, 3 + 4i},
 		zero:  true,
 		expect: mock.Chain(
-			Call("0", complex128(1.0)),
-			Call("1", complex128(0.0)),
+			Call("0", complex128(1+2i)),
+			Call("1", complex128(3+4i)),
 		),
 	},
-	"slice-string": {
+	"slice-string-values": {
 		zero:  true,
 		value: []string{"test", ""},
 		expect: mock.Chain(
@@ -161,162 +166,173 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 			Call("1", ""),
 		),
 	},
-	"slice-byte": {
+	"slice-byte-values": {
 		value: []byte{'a', 'b'},
 		expect: mock.Chain(
 			Call("0", byte('a')),
 			Call("1", byte('b')),
 		),
 	},
-	"slice-rune": {
+	"slice-rune-values": {
 		value: []rune{'a', 'b'},
 		expect: mock.Chain(
 			Call("0", rune('a')),
 			Call("1", rune('b')),
 		),
 	},
-	"slice-any": {
+	"slice-any-values": {
 		value: []any{0, "test"},
 		expect: mock.Chain(
 			Call("0", 0),
 			Call("1", "test"),
 		),
 	},
+	"slice-nil-ptr-values": {
+		value: []*struct {
+			A any `tag:"any"`
+		}{nil},
+		expect: Call("0.a", "any"),
+	},
 
 	// Test struct with field tags.
 	"struct-bool-tags": {
 		value: struct {
 			hidden  bool
-			Visible bool `tag:"visible"`
+			Visible bool `tag:"true"`
 		}{},
-		expect: Call("visible", "visible"),
+		expect: Call("visible", true),
 	},
+
 	"struct-ints-tags": {
 		value: struct {
-			I   int    `tag:"int"`
-			PI  *int   `tag:"*int"`
-			SI  []int  `tag:"[]int"`
-			PSI *[]int `tag:"*[]int"`
-			I8  int8   `tag:"int8"`
-			I16 int16  `tag:"int16"`
-			I32 int32  `tag:"int32"`
-			I64 int64  `tag:"int64"`
+			I   int    `tag:"1"`
+			PI  *int   `tag:"2"`
+			SI  []int  `tag:"[1,2,3]"`
+			PSI *[]int `tag:"[1,2,3]"`
+			I8  int8   `tag:"8"`
+			I16 int16  `tag:"16"`
+			I32 int32  `tag:"32"`
+			I64 int64  `tag:"64"`
 		}{},
 		expect: mock.Chain(
-			Call("i", "int"),
-			Call("pi", "*int"),
-			Call("si", "[]int"),
-			Call("psi", "*[]int"),
-			Call("i8", "int8"),
-			Call("i16", "int16"),
-			Call("i32", "int32"),
-			Call("i64", "int64"),
+			Call("i", int(1)),
+			Call("pi", test.Ptr(int(2))),
+			Call("si", []int{1, 2, 3}),
+			Call("psi", test.Ptr([]int{1, 2, 3})),
+			Call("i8", int8(8)),
+			Call("i16", int16(16)),
+			Call("i32", int32(32)),
+			Call("i64", int64(64)),
 		),
 	},
-	"struct-uints": {
+
+	"struct-uint-tags": {
 		value: struct {
-			UI   uint    `tag:"uint"`
-			PUI  *uint   `tag:"*uint"`
-			SUI  []uint  `tag:"[]uint"`
-			PSUI *[]uint `tag:"*[]uint"`
-			UI8  uint8   `tag:"uint8"`
-			UI16 uint16  `tag:"uint16"`
-			UI32 uint32  `tag:"uint32"`
-			UI64 uint64  `tag:"uint64"`
+			UI   uint    `tag:"1"`
+			PUI  *uint   `tag:"2"`
+			SUI  []uint  `tag:"[1,2,3]"`
+			PSUI *[]uint `tag:"[1,2,3]"`
+			UI8  uint8   `tag:"8"`
+			UI16 uint16  `tag:"16"`
+			UI32 uint32  `tag:"32"`
+			UI64 uint64  `tag:"64"`
 		}{},
 		expect: mock.Chain(
-			Call("ui", "uint"),
-			Call("pui", "*uint"),
-			Call("sui", "[]uint"),
-			Call("psui", "*[]uint"),
-			Call("ui8", "uint8"),
-			Call("ui16", "uint16"),
-			Call("ui32", "uint32"),
-			Call("ui64", "uint64"),
+			Call("ui", uint(1)),
+			Call("pui", test.Ptr(uint(2))),
+			Call("sui", []uint{1, 2, 3}),
+			Call("psui", test.Ptr([]uint{1, 2, 3})),
+			Call("ui8", uint8(8)),
+			Call("ui16", uint16(16)),
+			Call("ui32", uint32(32)),
+			Call("ui64", uint64(64)),
 		),
 	},
-	"struct-floats": {
+
+	"struct-float-tags": {
 		value: struct {
-			F32   float32    `tag:"float32"`
-			F64   float64    `tag:"float64"`
-			PF32  *float32   `tag:"*float32"`
-			PF64  *float64   `tag:"*float64"`
-			SF32  []float32  `tag:"[]float32"`
-			SF64  []float64  `tag:"[]float64"`
-			PSF32 *[]float32 `tag:"*[]float32"`
-			PSF64 *[]float64 `tag:"*[]float64"`
+			F32   float32    `tag:"32e-1"`
+			F64   float64    `tag:"64e-1"`
+			PF32  *float32   `tag:"32e-1"`
+			PF64  *float64   `tag:"64e-1"`
+			SF32  []float32  `tag:"[32e-1]"`
+			SF64  []float64  `tag:"[64e-1]"`
+			PSF32 *[]float32 `tag:"[32e-1]"`
+			PSF64 *[]float64 `tag:"[64e-1]"`
 		}{},
 		expect: mock.Chain(
-			Call("f32", "float32"),
-			Call("f64", "float64"),
-			Call("pf32", "*float32"),
-			Call("pf64", "*float64"),
-			Call("sf32", "[]float32"),
-			Call("sf64", "[]float64"),
-			Call("psf32", "*[]float32"),
-			Call("psf64", "*[]float64"),
+			Call("f32", float32(32e-1)),
+			Call("f64", float64(64e-1)),
+			Call("pf32", test.Ptr(float32(32e-1))),
+			Call("pf64", test.Ptr(float64(64e-1))),
+			Call("sf32", []float32{32e-1}),
+			Call("sf64", []float64{64e-1}),
+			Call("psf32", test.Ptr([]float32{32e-1})),
+			Call("psf64", test.Ptr([]float64{64e-1})),
 		),
 	},
-	"struct-complex": {
+
+	"struct-complex-tags": {
 		value: struct {
-			F32   complex64     `tag:"complex64"`
-			F64   complex128    `tag:"complex128"`
-			PF32  *complex64    `tag:"*complex64"`
-			PF64  *complex128   `tag:"*complex128"`
-			SF32  []complex64   `tag:"[]complex64"`
-			SF64  []complex128  `tag:"[]complex128"`
-			PSF32 *[]complex64  `tag:"*[]complex64"`
-			PSF64 *[]complex128 `tag:"*[]complex128"`
+			C64    complex64     `tag:"64+2i"`
+			C128   complex128    `tag:"128+2i"`
+			PC64   *complex64    `tag:"64+2i"`
+			PC128  *complex128   `tag:"128+2i"`
+			SC64   []complex64   `tag:"[64+2i, 32+1i]"`
+			SC128  []complex128  `tag:"[128+2i, 64+1i]"`
+			PSC64  *[]complex64  `tag:"[64+2i, 32+1i]"`
+			PSC128 *[]complex128 `tag:"[128+2i, 64+1i]"`
 		}{},
 		expect: mock.Chain(
-			Call("f32", "complex64"),
-			Call("f64", "complex128"),
-			Call("pf32", "*complex64"),
-			Call("pf64", "*complex128"),
-			Call("sf32", "[]complex64"),
-			Call("sf64", "[]complex128"),
-			Call("psf32", "*[]complex64"),
-			Call("psf64", "*[]complex128"),
+			Call("c64", complex64(64+2i)),
+			Call("c128", complex128(128+2i)),
+			Call("pc64", test.Ptr(complex64(64+2i))),
+			Call("pc128", test.Ptr(complex128(128+2i))),
+			Call("sc64", []complex64{64 + 2i, 32 + 1i}),
+			Call("sc128", []complex128{128 + 2i, 64 + 1i}),
+			Call("psc64", test.Ptr([]complex64{64 + 2i, 32 + 1i})),
+			Call("psc128", test.Ptr([]complex128{128 + 2i, 64 + 1i})),
 		),
 	},
-	"struct-strings": {
+
+	"struct-string-tags": {
 		value: struct {
 			S   string  `tag:"string"`
-			PS  *string `tag:"*string"`
-			B   byte    `tag:"uint8"`
-			PB  *byte   `tag:"*uint8"`
-			SB  []byte  `tag:"[]uint8"`
-			PSB *[]byte `tag:"*[]uint8"`
-			R   rune    `tag:"int32"`
-			PR  *rune   `tag:"*int32"`
-			SR  []rune  `tag:"[]int32"`
-			PSR *[]rune `tag:"*[]int32"`
+			PS  *string `tag:"string"`
+			B   byte    `tag:"117"`
+			PB  *byte   `tag:"42"`
+			SB  []byte  `tag:"[117,105,110,116,56]"`
+			PSB *[]byte `tag:"[42,117,105,110,116,56]"`
+			R   rune    `tag:"105"`
+			PR  *rune   `tag:"42"`
+			SR  []rune  `tag:"[105,110,116,51,50]"`
+			PSR *[]rune `tag:"[42,105,110,116,51,50]"`
 		}{},
 		expect: mock.Chain(
 			Call("s", "string"),
-			Call("ps", "*string"),
-			Call("b", "uint8"),
-			Call("pb", "*uint8"),
-			Call("sb", "[]uint8"),
-			Call("psb", "*[]uint8"),
-			Call("r", "int32"),
-			Call("pr", "*int32"),
-			Call("sr", "[]int32"),
-			Call("psr", "*[]int32"),
+			Call("ps", test.Ptr("string")),
+			Call("b", byte('u')),
+			Call("pb", test.Ptr(byte('*'))),
+			Call("sb", []byte("uint8")),
+			Call("psb", test.Ptr([]byte("*uint8"))),
+			Call("r", rune('i')),
+			Call("pr", test.Ptr(rune('*'))),
+			Call("sr", []rune("int32")),
+			Call("psr", test.Ptr([]rune("*int32"))),
 		),
 	},
 
 	// Test structs with field values.
 	"struct-all-values": {
 		value: struct {
-			Bool   bool    `map:"bool" default:"false"`
-			Int    int     `map:"int" default:"-2"`
-			Uint   uint    `map:"uint" default:"2"`
-			Float  float64 `map:"float" default:"3.0"`
-			String string  `map:"string" default:"STRING"`
-			Byte   byte    `map:"byte" default:"A"`
-			Rune   rune    `map:"rune" default:"B"`
-			Any    any     `map:"any" default:"ANY"`
+			Bool   bool    `map:"bool" tag:"false"`
+			Int    int     `map:"int" tag:"-2"`
+			Uint   uint    `map:"uint" tag:"2"`
+			Float  float64 `map:"float" tag:"3.0"`
+			String string  `map:"string" tag:"STRING"`
+			Byte   byte    `map:"byte" tag:"A"`
+			Rune   rune    `map:"rune" tag:"B"`
+			Any    any     `map:"any" tag:"ANY"`
 		}{
 			Bool:   true,
 			Int:    int(-1),
@@ -353,21 +369,17 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 		value: struct {
 			S struct {
 				A any `tag:"any"`
-			} `tag:"struct{any}"`
+			}
 		}{},
-		expect: mock.Chain(
-			Call("s.a", "any"),
-		),
+		expect: Call("s.a", "any"),
 	},
 	"struct-ptr-struct": {
 		value: struct {
 			S *struct {
 				A any `tag:"any"`
-			} `tag:"*struct{any}"`
+			}
 		}{},
-		expect: mock.Chain(
-			Call("s.a", "any"),
-		),
+		expect: Call("s.a", "any"),
 	},
 
 	// Test pointer struct with nested structs.
@@ -384,70 +396,83 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 		value: &struct {
 			S struct {
 				A any `tag:"any"`
-			} `tag:"struct{any}"`
+			}
 		}{},
-		expect: mock.Chain(
-			Call("s.a", "any"),
-		),
+		expect: Call("s.a", "any"),
 	},
-	"ptr-struct-ptr-struct": {
+	"ptr-struct-ptr-struct-tags": {
 		value: &struct {
 			S *struct {
 				A any `tag:"any"`
-			} `tag:"*struct{any}"`
+			} `tag:"{a: any}"`
 		}{},
 		expect: mock.Chain(
-			Call("s.a", "any"),
+			Call("s", &struct {
+				A any `tag:"any"`
+			}{A: "any"}),
 		),
 	},
 
 	// Test struct with nested slices and tags.
-	"struct-slice-tag": {
+	"struct-slice-tags": {
 		value: struct {
-			S []any `tag:"[]any"`
+			S []any `tag:"[any,all]"`
 		}{},
-		expect: Call("s", "[]any"),
+		expect: Call("s", []any{"any", "all"}),
 	},
-	"struct-slice-struct-tag": {
+	"struct-slice-struct-tags": {
 		value: struct {
 			S []struct {
 				A any `tag:"any"`
-			} `tag:"[]struct{any}"`
+			} `tag:"[{a: any},{a: all}]"`
 		}{},
-		expect: Call("s", "[]struct{any}"),
+		expect: Call("s", []struct {
+			A any `tag:"any"`
+		}{{A: "any"}, {A: "all"}}),
 	},
-	"struct-slice-ptr-struct-tag": {
+	"struct-slice-ptr-struct-tags": {
 		value: struct {
 			S []*struct {
 				A any `tag:"any"`
-			} `tag:"[]*struct{any}"`
+			} `tag:"[{a: any},{a: all}]"`
 		}{},
-		expect: Call("s", "[]*struct{any}"),
+		expect: Call("s", []*struct {
+			A any `tag:"any"`
+		}{{A: "any"}, {A: "all"}}),
 	},
-	"struct-ptr-slice-ptr-struct-tag": {
+	"struct-ptr-slice-ptr-struct-tags": {
 		value: struct {
 			S *[]*struct {
 				A any `tag:"any"`
-			} `tag:"*[]*struct{any}"`
+			} `tag:"[{a: any},{a: all}]"`
 		}{},
-		expect: Call("s", "*[]*struct{any}"),
+		expect: Call("s", &[]*struct {
+			A any `tag:"any"`
+		}{
+			test.Ptr(struct {
+				A any `tag:"any"`
+			}{A: "any"}),
+			test.Ptr(struct {
+				A any `tag:"any"`
+			}{A: "all"}),
+		}),
 	},
 
 	// Test struct with nested slices and values.
-	"struct-slice-value": {
+	"struct-slice-values": {
 		value: struct {
-			S []any `tag:"[]any"`
+			S []any
 		}{S: []any{1, 2}},
 		expect: mock.Chain(
 			Call("s.0", 1),
 			Call("s.1", 2),
 		),
 	},
-	"struct-slice-struct-value": {
+	"struct-slice-struct-values": {
 		value: struct {
 			S []struct {
 				A any `tag:"any"`
-			} `tag:"[]struct{any}"`
+			}
 		}{S: []struct {
 			A any `tag:"any"`
 		}{{A: 1}, {A: 2}}},
@@ -456,11 +481,11 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 			Call("s.1.a", 2),
 		),
 	},
-	"struct-slice-ptr-struct-value": {
+	"struct-slice-ptr-struct-values": {
 		value: struct {
 			S []*struct {
 				A any `tag:"any"`
-			} `tag:"[]*struct{any}"`
+			}
 		}{S: []*struct {
 			A any `tag:"any"`
 		}{{A: 1}, {A: 2}}},
@@ -469,11 +494,11 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 			Call("s.1.a", 2),
 		),
 	},
-	"struct-ptr-slice-ptr-struct-value": {
+	"struct-ptr-slice-ptr-struct-values": {
 		value: struct {
 			S *[]*struct {
 				A any `tag:"any"`
-			} `tag:"*[]*struct{any}"`
+			}
 		}{S: &[]*struct {
 			A any `tag:"any"`
 		}{{A: 1}, {A: 2}}},
@@ -484,61 +509,82 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 	},
 
 	// Test struct with nested maps.
-	"struct-map-tag": {
+	"struct-map-tags": {
 		value: struct {
-			M map[string]any `tag:"map[string]any"`
+			M map[string]any `tag:"{a: any, b: {a: all}}"`
 		}{},
-		expect: Call("m", "map[string]any"),
+		expect: Call("m", map[string]any{
+			"a": "any",
+			"b": map[string]any{"a": "all"},
+		}),
 	},
-	"struct-ptr-map-tag": {
+	"struct-ptr-map-tags": {
 		value: struct {
-			M *map[string]any `tag:"*map[string]any"`
+			M *map[string]any `tag:"{a: any, b: {a: all}}"`
 		}{},
-		expect: Call("m", "*map[string]any"),
+		expect: Call("m", &map[string]any{
+			"a": "any",
+			"b": map[string]any{"a": "all"},
+		}),
 	},
-	"struct-map-struct-tag": {
+	"struct-map-struct-tags": {
 		value: &struct {
 			M map[string]struct {
 				A any `tag:"any"`
-			} `tag:"map[string]struct{any}"`
+			} `tag:"{a: {a: any},b: {a: all}}"`
 		}{},
-		expect: Call("m", "map[string]struct{any}"),
+		expect: Call("m", map[string]struct {
+			A any `tag:"any"`
+		}{
+			"a": {A: "any"},
+			"b": {A: "all"},
+		}),
 	},
-	"struct-ptr-map-struct-tag": {
+	"struct-ptr-map-struct-tags": {
 		value: &struct {
 			M map[string]struct {
 				A any `tag:"any"`
-			} `tag:"*map[string]struct{any}"`
+			} `tag:"{a: {a: any},b: {a: all} }"`
 		}{},
-		expect: Call("m", "*map[string]struct{any}"),
+		expect: Call("m", map[string]struct {
+			A any `tag:"any"`
+		}{
+			"a": {A: "any"},
+			"b": {A: "all"},
+		}),
 	},
-	"struct-map-ptr-struct-tag": {
+	"struct-map-ptr-struct-tags": {
 		value: &struct {
 			M map[string]*struct {
 				A any `tag:"any"`
-			} `tag:"map[string]*struct{any}"`
+			} `tag:"{a: {a: any},b: {a: all}}"`
 		}{},
-		expect: Call("m", "map[string]*struct{any}"),
+		expect: Call("m", map[string]*struct {
+			A any `tag:"any"`
+		}{
+			"a": {A: "any"},
+			"b": {A: "all"},
+		}),
 	},
 
 	// Test struct with nested maps.
-	"struct-map-value": {
+	"struct-map-values": {
 		value: struct {
-			M map[string]any `tag:"map[string]any"`
+			M map[string]any
 		}{M: map[string]any{"key": "value"}},
 		expect: Call("m.key", "value"),
 	},
-	"struct-ptr-map-value": {
+	"struct-ptr-map-values": {
 		value: struct {
-			M *map[string]any `tag:"*map[string]any"`
+			M *map[string]any
 		}{M: &map[string]any{"key": "value"}},
 		expect: Call("m.key", "value"),
 	},
-	"struct-map-struct-value": {
+	"struct-map-struct-values": {
 		value: struct {
 			M map[string]struct {
 				A any `tag:"any"`
-			} `tag:"map[string]struct{any}"`
+			}
 		}{M: map[string]struct {
 			A any `tag:"any"`
 		}{"key-0": {A: 1}, "key-1": {A: 2}}},
@@ -547,11 +593,11 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 			Call("m.key-1.a", 2),
 		),
 	},
-	"struct-ptr-map-struct-value": {
+	"struct-ptr-map-struct-values": {
 		value: struct {
 			M *map[string]struct {
 				A any `tag:"any"`
-			} `tag:"*map[string]struct{any}"`
+			}
 		}{M: &map[string]struct {
 			A any `tag:"any"`
 		}{"key-0": {A: 1}, "key-1": {A: 2}}},
@@ -560,11 +606,11 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 			Call("m.key-1.a", 2),
 		),
 	},
-	"struct-ptr-map-ptr-struct-value": {
+	"struct-ptr-map-ptr-struct-values": {
 		value: struct {
 			M *map[string]*struct {
 				A any `tag:"any"`
-			} `tag:"map[string]*struct{any}"`
+			}
 		}{M: &map[string]*struct {
 			A any `tag:"any"`
 		}{"key-0": {A: 1}, "key-1": {A: 2}}},
@@ -574,69 +620,121 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 		),
 	},
 
-	// Test map structure tags.
-	"map-name": {
-		value: &struct {
-			M any `map:"X" tag:"any"`
+	// Test with special tags.
+	"tag-map-squash": {
+		value: struct {
+			S struct {
+				A any `tag:"any"`
+			} `map:",squash"`
 		}{},
-		expect: Call("x", "any"),
+		expect: Call("a", "any"),
 	},
-	"map-squash": {
+	"tag-map-remain": {
+		value: struct {
+			Field any `map:",remain" tag:"any"`
+		}{},
+		expect: Call("field", "any"),
+	},
+	"tag-yaml-slice": {
+		value: &struct {
+			S []string `tag:"[a,b]"`
+		}{},
+		expect: Call("s", []string{"a", "b"}),
+	},
+	"tag-yaml-map": {
 		value: &struct {
 			S struct {
-				A *any `map:"X" tag:"*any"`
-			} `map:",squash" tag:"struct{*any}"`
+				A string `tag:"v"`
+				B []string
+				C string
+			} `tag:"{a: a, b: [a,b], c: c}"`
 		}{},
 		expect: mock.Chain(
-			Call("x", "*any"),
+			Call("s", struct {
+				A string `tag:"v"`
+				B []string
+				C string
+			}{A: "a", B: []string{"a", "b"}, C: "c"}),
 		),
 	},
-	"map-empty": {
+	"tag-yaml-error": {
 		value: &struct {
-			S struct {
-				A *any `map:",omitempty" tag:"*any"`
-			} `map:",squash" tag:"struct{*any}"`
+			S []string `tag:"a,b"`
 		}{},
-		expect: mock.Chain(
-			Call("a", "*any"),
+		expect: mock.Setup(
+			Call("s", "a,b"),
 		),
+		error: fmt.Errorf("%w - %s [%s=%s]: %w",
+			reflect.ErrTagWalker, "yaml parsing", "s", "\"a,b\"",
+			&yaml.TypeError{Errors: []string{
+				"line 1: cannot unmarshal !!str `a,b` into []string",
+			}}),
 	},
-	"map-remain": {
+
+	// Complex number parsing errors
+	"tag-yaml-complex-invalid": {
 		value: &struct {
-			S struct {
-				A *any           `map:",omitempty" tag:"*any"`
-				R map[string]any `map:",remain" tag:"map[string]any"`
-			} `map:",squash" tag:"struct{*any}"`
+			C complex64 `tag:"invalid"`
 		}{},
-		expect: mock.Chain(
-			Call("a", "*any"),
-			Call("r", "map[string]any"),
+		expect: mock.Setup(
+			Call("c", "invalid"),
 		),
+		error: fmt.Errorf("%w - %s [%s=%s]: %w",
+			reflect.ErrTagWalker, "complex parsing", "c", "\"invalid\"",
+			&strconv.NumError{
+				Func: "ParseComplex",
+				Num:  "invalid",
+				Err:  strconv.ErrSyntax,
+			}),
 	},
-	"map-comma": {
+	"tag-yaml-complex-slice-invalid": {
 		value: &struct {
-			S struct {
-				A *any `map:"," tag:"*any"`
-			} `map:",squash" tag:"struct{*any}"`
+			SC []complex64 `tag:"[invalid, 1+2i]"`
 		}{},
-		expect: mock.Chain(
-			Call("a", "*any"),
+		expect: mock.Setup(
+			Call("sc", []string{"invalid", "1+2i"}),
 		),
+		error: fmt.Errorf("%w - %s [%s=%#v]: %w",
+			reflect.ErrTagWalker, "complex parsing", "sc",
+			[]string{"invalid", "1+2i"},
+			&strconv.NumError{
+				Func: "ParseComplex",
+				Num:  "invalid",
+				Err:  strconv.ErrSyntax,
+			}),
+	},
+	"tag-yaml-complex-ptr-slice-invalid": {
+		value: &struct {
+			PSC *[]complex64 `tag:"[invalid, 1+2i]"`
+		}{},
+		expect: mock.Setup(
+			Call("psc", []string{"invalid", "1+2i"}),
+		),
+		error: fmt.Errorf("%w - %s [%s=%#v]: %w",
+			reflect.ErrTagWalker, "complex parsing", "psc",
+			[]string{"invalid", "1+2i"},
+			&strconv.NumError{
+				Func: "ParseComplex",
+				Num:  "invalid",
+				Err:  strconv.ErrSyntax,
+			}),
 	},
 }
 
-// TestTagWalker_Walk tests TagWalker.Walk.
-func TestTagWalker_Walk(t *testing.T) {
+// TestTagWalker tests TagWalker.Walk.
+func TestTagWalker(t *testing.T) {
 	test.Map(t, tagWalkerTestCases).
+		// Filter(test.Pattern[TagWalkerParams]("struct-string-tags")).
 		Run(func(t test.Test, param TagWalkerParams) {
 			// Given
 			mocks := mock.NewMocks(t).Expect(param.expect)
-			walker := reflect.NewTagWalker("tag", "map", param.zero)
-
-			// When
-			walker.Walk(param.key, param.value,
+			walker := reflect.NewTagWalker("tag", "map", param.zero,
 				mock.Get(mocks, NewMockCallback).Call)
 
+			// When
+			err := walker.Walk(param.key, param.value)
+
 			// Then
+			assert.Equal(t, param.error, err)
 		})
 }
