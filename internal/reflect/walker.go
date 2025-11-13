@@ -129,8 +129,9 @@ func (w *TagWalker) walkField(
 	case reflect.Slice, reflect.Array, reflect.Map:
 		if value.Len() != 0 {
 			w.walk(path, value)
+		} else if field.Tag.Get(w.dtag) != "" {
+			w.callField(path, field)
 		}
-		w.callField(path, field)
 	default:
 		if value.IsValid() && !value.IsZero() {
 			w.call(path, value.Interface())
@@ -145,20 +146,18 @@ func (w *TagWalker) walkField(
 // For complex numbers, which YAML doesn't support natively, we first parse the
 // value as string/[]string, then convert to the actual complex type.
 func (w *TagWalker) callField(path string, field reflect.StructField) {
-	if value := field.Tag.Get(w.dtag); value != "" {
-		fieldType := field.Type
-		parseType := parseType(fieldType)
-		ptr := reflect.New(parseType)
-
-		if err := yaml.Unmarshal([]byte(value), ptr.Interface()); err != nil {
-			w.errors = append(w.errors,
-				NewErrTagWalker("yaml parsing", path, value, err))
-			w.call(path, value)
-		} else if parseType != fieldType {
-			w.callComplex(path, ptr.Elem().Interface(), fieldType)
-		} else {
-			w.call(path, ptr.Elem().Interface())
-		}
+	fieldType := field.Type
+	parseType := parseType(fieldType)
+	ptr := reflect.New(parseType)
+	value := field.Tag.Get(w.dtag)
+	if err := yaml.Unmarshal([]byte(value), ptr.Interface()); err != nil {
+		w.errors = append(w.errors,
+			NewErrTagWalker("yaml parsing", path, value, err))
+		w.call(path, value)
+	} else if parseType != fieldType {
+		w.callComplex(path, ptr.Elem().Interface(), fieldType)
+	} else {
+		w.call(path, ptr.Elem().Interface())
 	}
 }
 

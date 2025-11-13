@@ -621,6 +621,30 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 	},
 
 	// Test with special tags.
+	"tag-yaml-no-tags": {
+		value: &struct {
+			S string
+		}{},
+	},
+	"tag-yaml-zero-no-tags": {
+		value: &struct {
+			S string
+		}{},
+		zero:   true,
+		expect: Call("s", ""),
+	},
+	"tag-yaml-empty": {
+		value: &struct {
+			S string `tag:""`
+		}{},
+	},
+	"tag-yaml-zero-empty": {
+		value: &struct {
+			S string `tag:""`
+		}{},
+		zero:   true,
+		expect: Call("s", ""),
+	},
 	"tag-map-squash": {
 		value: struct {
 			S struct {
@@ -721,10 +745,9 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 	},
 }
 
-// TestTagWalker tests TagWalker.Walk.
 func TestTagWalker(t *testing.T) {
 	test.Map(t, tagWalkerTestCases).
-		// Filter(test.Pattern[TagWalkerParams]("struct-string-tags")).
+		// Filter(test.Pattern[TagWalkerParams]("^tag-yaml-zero")).
 		Run(func(t test.Test, param TagWalkerParams) {
 			// Given
 			mocks := mock.NewMocks(t).Expect(param.expect)
