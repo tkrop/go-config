@@ -22,8 +22,7 @@ var ErrConfig = errors.New("config")
 // NewErrConfig is a convenience method to create a new config error with the
 // given context wrapping the original error.
 func NewErrConfig(message, context string, err error) error {
-	//nolint:errorlint // wrapping error hard to test. // TODO: improve tests.
-	return fmt.Errorf("%w - %s [%s]: %v", ErrConfig, message, context, err)
+	return fmt.Errorf("%w - %s [%s]: %w", ErrConfig, message, context, err)
 }
 
 // Config common application configuration.
@@ -113,8 +112,17 @@ func (r *Reader[C]) SetDefaultConfig(
 	r.SetDefault("info.platform", info.Platform)
 	r.SetDefault("info.compiler", info.Compiler)
 
-	reflect.NewTagWalker("default", "mapstructure", zero).
-		Walk(key, config, r.SetDefault)
+	err := reflect.NewTagWalker("default", "mapstructure",
+		zero, r.SetDefault).Walk(key, config)
+	if err != nil {
+		err := NewErrConfig("creating defaults", "", err)
+		logrus.WithFields(logrus.Fields{
+			"key": key, "config": config,
+		}).WithError(err).Warn("creating defaults")
+		if r.GetBool("viper.panic.defaults") {
+			panic(err)
+		}
+	}
 
 	return r
 }
