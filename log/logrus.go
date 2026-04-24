@@ -5,7 +5,6 @@ import (
 	"io"
 	"maps"
 	"slices"
-	"sort"
 
 	"github.com/sirupsen/logrus"
 )
@@ -79,7 +78,7 @@ func (p *LogRusPretty) Format(entry *logrus.Entry) ([]byte, error) {
 func (p *LogRusPretty) getSortedKeys(data logrus.Fields) []string {
 	keys := slices.Collect(maps.Keys(data))
 	if p.OrderMode.CheckFlag(OrderOn) {
-		sort.Strings(keys)
+		slices.Sort(keys)
 	}
 	return keys
 }
