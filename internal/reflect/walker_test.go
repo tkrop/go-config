@@ -1,6 +1,7 @@
 package reflect_test
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"testing"
@@ -29,6 +30,10 @@ func Call(path string, value any) mock.SetupFunc {
 		return mock.Get(mocks, NewMockCallback).EXPECT().Call(path, value).
 			DoAndReturn(mocks.Do(Callback.Call))
 	}
+}
+
+func joinError(err error) error {
+	return errors.Join(err)
 }
 
 // TagWalkerParams contains a value and the expected tags.
@@ -688,11 +693,11 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 		expect: mock.Setup(
 			Call("s", "a,b"),
 		),
-		error: fmt.Errorf("%w - %s [%s=%s]: %w",
+		error: joinError(fmt.Errorf("%w - %s [%s=%s]: %w",
 			reflect.ErrTagWalker, "yaml parsing", "s", "\"a,b\"",
 			&yaml.TypeError{Errors: []string{
 				"line 1: cannot unmarshal !!str `a,b` into []string",
-			}}),
+			}})),
 	},
 
 	// Complex number parsing errors
@@ -703,13 +708,13 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 		expect: mock.Setup(
 			Call("c", "invalid"),
 		),
-		error: fmt.Errorf("%w - %s [%s=%s]: %w",
+		error: joinError(fmt.Errorf("%w - %s [%s=%s]: %w",
 			reflect.ErrTagWalker, "complex parsing", "c", "\"invalid\"",
 			&strconv.NumError{
 				Func: "ParseComplex",
 				Num:  "invalid",
 				Err:  strconv.ErrSyntax,
-			}),
+			})),
 	},
 	"tag-yaml-complex-slice-invalid": {
 		value: &struct {
@@ -718,14 +723,14 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 		expect: mock.Setup(
 			Call("sc", []string{"invalid", "1+2i"}),
 		),
-		error: fmt.Errorf("%w - %s [%s=%#v]: %w",
+		error: joinError(fmt.Errorf("%w - %s [%s=%#v]: %w",
 			reflect.ErrTagWalker, "complex parsing", "sc",
 			[]string{"invalid", "1+2i"},
 			&strconv.NumError{
 				Func: "ParseComplex",
 				Num:  "invalid",
 				Err:  strconv.ErrSyntax,
-			}),
+			})),
 	},
 	"tag-yaml-complex-ptr-slice-invalid": {
 		value: &struct {
@@ -734,14 +739,14 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 		expect: mock.Setup(
 			Call("psc", []string{"invalid", "1+2i"}),
 		),
-		error: fmt.Errorf("%w - %s [%s=%#v]: %w",
+		error: joinError(fmt.Errorf("%w - %s [%s=%#v]: %w",
 			reflect.ErrTagWalker, "complex parsing", "psc",
 			[]string{"invalid", "1+2i"},
 			&strconv.NumError{
 				Func: "ParseComplex",
 				Num:  "invalid",
 				Err:  strconv.ErrSyntax,
-			}),
+			})),
 	},
 }
 

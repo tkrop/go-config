@@ -59,6 +59,7 @@ func NewTagWalker(
 // function with the path and tag of each field that has a tag.
 func (w *TagWalker) Walk(path string, value any) error {
 	w.walk(strings.ToLower(path), reflect.ValueOf(value))
+
 	return errors.Join(w.errors...)
 }
 
