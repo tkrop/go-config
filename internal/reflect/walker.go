@@ -130,7 +130,7 @@ func (w *TagWalker) walkField(
 	case reflect.Slice, reflect.Array, reflect.Map:
 		if value.Len() != 0 {
 			w.walk(path, value)
-		} else if field.Tag.Get(w.dtag) != "" {
+		} else if field.Tag.Get(w.dtag) != "" || w.zero {
 			w.callField(path, field)
 		}
 	default:
