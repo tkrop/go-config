@@ -63,7 +63,7 @@ func (p *LogRusPretty) Format(entry *logrus.Entry) ([]byte, error) {
 	buffer := NewBuffer(p.Setup, &bytes.Buffer{})
 	buffer.WriteString(entry.Time.Format(p.TimeFormat)).
 		WriteByte(' ').WriteLevel(Level(entry.Level))
-	if entry.HasCaller() {
+	if entry.Caller != nil {
 		buffer.WriteCaller(entry.Caller)
 	}
 	buffer.WriteByte(' ').WriteString(entry.Message)

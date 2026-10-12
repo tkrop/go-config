@@ -69,7 +69,7 @@ func (w *TagWalker) Walk(path string, value any) error {
 // provided via environment variables to the config reader.
 func (w *TagWalker) walk(path string, value reflect.Value) {
 	switch value.Kind() {
-	case reflect.Ptr:
+	case reflect.Pointer:
 		if value.IsZero() {
 			value = reflect.New(value.Type().Elem())
 		}
@@ -122,7 +122,7 @@ func (w *TagWalker) walkField(
 		} else {
 			w.walkStruct(path, value)
 		}
-	case reflect.Ptr:
+	case reflect.Pointer:
 		if value.IsZero() {
 			value = reflect.New(value.Type().Elem())
 		}
@@ -130,7 +130,7 @@ func (w *TagWalker) walkField(
 	case reflect.Slice, reflect.Array, reflect.Map:
 		if value.Len() != 0 {
 			w.walk(path, value)
-		} else if field.Tag.Get(w.dtag) != "" {
+		} else if field.Tag.Get(w.dtag) != "" || w.zero {
 			w.callField(path, field)
 		}
 	default:
@@ -224,7 +224,7 @@ func parseType(fieldType reflect.Type) reflect.Type {
 		if isComplex(fieldType.Elem()) {
 			return reflect.TypeOf([]string{})
 		}
-	case reflect.Ptr:
+	case reflect.Pointer:
 		ftype := parseType(fieldType.Elem())
 		if ftype != fieldType.Elem() {
 			return ftype
@@ -237,7 +237,7 @@ func parseType(fieldType reflect.Type) reflect.Type {
 // struct.
 func (*TagWalker) isStruct(field reflect.StructField) bool {
 	return (field.Type.Kind() == reflect.Struct ||
-		field.Type.Kind() == reflect.Ptr &&
+		field.Type.Kind() == reflect.Pointer &&
 			field.Type.Elem().Kind() == reflect.Struct)
 }
 
@@ -273,7 +273,7 @@ func toComplex(parsed any, fieldType reflect.Type) (any, error) {
 			return parseSlice[complex128](parsed.([]string), Complex128BitSize)
 		}
 
-	case reflect.Ptr:
+	case reflect.Pointer:
 		if result, err := toComplex(parsed, fieldType.Elem()); err == nil {
 			return pointer(result), nil
 		} else {
