@@ -435,10 +435,9 @@ var prettyLogRusTestCases = map[string]PrettyLogRusParams{
 	},
 
 	// Report caller.
-	"caller only": {
+	"caller disabled": {
 		entry: &logrus.Entry{
 			Message: "caller message",
-			Caller:  anyFrame,
 		},
 		expectResult: otime[0:26] + " " +
 			levelC(log.PanicLevel) + " " +
@@ -448,9 +447,6 @@ var prettyLogRusTestCases = map[string]PrettyLogRusParams{
 		entry: &logrus.Entry{
 			Message: "caller report message",
 			Caller:  anyFrame,
-			Logger: &logrus.Logger{
-				ReportCaller: true,
-			},
 		},
 		expectResult: otime[0:26] + " " +
 			levelC(log.PanicLevel) + " " +

@@ -638,6 +638,27 @@ var tagWalkerTestCases = map[string]TagWalkerParams{
 		zero:   true,
 		expect: Call("s", ""),
 	},
+	"tag-yaml-zero-no-tags-slice": {
+		value: &struct {
+			S []string
+		}{},
+		zero:   true,
+		expect: Call("s", []string(nil)),
+	},
+	"tag-yaml-zero-no-tags-array": {
+		value: &struct {
+			A [0]string
+		}{},
+		zero:   true,
+		expect: Call("a", [0]string{}),
+	},
+	"tag-yaml-zero-no-tags-map": {
+		value: &struct {
+			M map[string]string
+		}{},
+		zero:   true,
+		expect: Call("m", map[string]string(nil)),
+	},
 	"tag-yaml-empty": {
 		value: &struct {
 			S string `tag:""`

@@ -40,11 +40,12 @@ func newConfig(
 }
 
 func isRepoDirty() bool {
-	if out, err := exec.Command("git", "status",
-		"--porcelain").Output(); err == nil {
-		return strings.TrimSpace(string(out)) != ""
+	out, err := exec.Command("git", "status", "--porcelain").Output()
+	if err != nil {
+		return false
 	}
-	return false
+
+	return strings.TrimSpace(string(out)) != ""
 }
 
 type ConfigParams struct {
