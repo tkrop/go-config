@@ -29,6 +29,7 @@ type delegate struct {
 	Flag  bool   `yaml:"flag" json:"flag"`
 }
 
+//revive:disable-next-line:marshal-receiver // preserves nil receiver handling.
 func (o *object) MarshalJSON() ([]byte, error) {
 	if o == nil {
 		return json.Marshal(nil)
@@ -55,6 +56,7 @@ func (o *object) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+//revive:disable-next-line:marshal-receiver // preserves nil receiver handling.
 func (o *object) MarshalYAML() (any, error) {
 	node := &yaml.Node{}
 	if o == nil {
