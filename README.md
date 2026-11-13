@@ -73,7 +73,7 @@ type Config struct {
     String string `default:"my-value"`
     Dur Duration  `default:"1m"`
 
-    Service *my.ServiceConfig
+    Service *my.ServiceConfig `env:"json"`
 }
 ```
 
@@ -116,7 +116,12 @@ The collected defaults are overwriting each other in the following order:
 5. And finally the values provided via environment variables are applied
    taking the highest precedence.
 
-**Note**: While yo declare the reader with a default config structure, it is
+**Note:** By adding `env:"json"` to a nested config struct, the reader is will
+attempt to read the nested config struct from the matching environment variable
+using a JSON parser. As always in viper a variable at this level precedes over
+the nested individual field set ups.
+
+**Note**: While you declare the reader with a default config structure, it is
 still possible to customize the reader arbitrarily, e.g. with flag support, and
 setup any other config structure by using the original [Viper][viper] interface
 functions.
