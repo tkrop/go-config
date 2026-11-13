@@ -30,9 +30,9 @@ type Config struct {
 	// Env contains the execution environment, e.g. local, prod, test.
 	Env string `default:"prod"`
 	// Info default build information.
-	Info *info.Info
+	Info *info.Info `env:"json"`
 	// Log default logger setup.
-	Log *log.Config
+	Log *log.Config `env:"json"`
 }
 
 // Reader common config reader based on viper.
@@ -113,7 +113,7 @@ func (r *Reader[C]) SetDefaultConfig(
 	r.SetDefault("info.compiler", info.Compiler)
 
 	err := reflect.NewTagWalker("default", "mapstructure",
-		zero, r.SetDefault).Walk(key, config)
+		zero, reflect.ParseTagYaml, r.SetDefault).Walk(key, config)
 	if err != nil {
 		err := NewErrConfig("creating defaults", "", err)
 		logrus.WithFields(logrus.Fields{
@@ -137,8 +137,10 @@ func (r *Reader[C]) SetDefault(key string, value any) {
 }
 
 // ReadConfig is a convenience method to read the environment specific config
-// file to extend the default config. The context is used to distinguish
-// different calls in case of a failure loading the config file.
+// file and merge pre-evaluated environment values on fields marked with `env`
+// tags. The context is string is only used to distinguish different calls in
+// case of a failure loading the config file and pre-evaluating environment
+// values.
 func (r *Reader[C]) ReadConfig(context string) *Reader[C] {
 	if err := r.ReadInConfig(); err != nil {
 		err := NewErrConfig("loading file", context, err)
@@ -150,13 +152,28 @@ func (r *Reader[C]) ReadConfig(context string) *Reader[C] {
 		}
 	}
 
+	err := reflect.NewTagWalker("env", "mapstructure", false,
+		reflect.NewEnvParser(r.Get).Parse, r.setEnvDefault,
+	).Walk("", new(C))
+	if err != nil {
+		err := NewErrConfig("merging environment", context, err)
+		logrus.WithFields(logrus.Fields{
+			"context": context,
+		}).WithError(err).Error("merging environment")
+		if r.GetBool("viper.panic.unmarshal") {
+			panic(err)
+		}
+	}
+
 	return r
 }
 
-// GetConfig is a convenience method to return the config without loading the
-// environment specific config file. The context is used to distinguish
-// different calls in case of a panic created by failures while unmarschalling
-// the config.
+// GetConfig is a convenience method to return the config without re-loading
+// the environment specific config file. The given context string is only used
+// to distinguish different calls in case of a panic created by failures while
+// unmarshalling the config.
+//
+// Note: Fields declared with `env` tags are pre-evaluated while reading the config.
 func (r *Reader[C]) GetConfig(context string) *C {
 	config := new(C)
 	if err := r.Unmarshal(config); err != nil {
@@ -175,6 +192,14 @@ func (r *Reader[C]) GetConfig(context string) *C {
 	}).Debugf("config loaded")
 
 	return config
+}
+
+// setEnvDefault stores a parsed environment value at its config path.
+func (r *Reader[C]) setEnvDefault(path string, value any) {
+	if path == "" || value == nil {
+		return
+	}
+	r.Set(path, value)
 }
 
 // LoadConfig is a convenience method to load the environment specific config
