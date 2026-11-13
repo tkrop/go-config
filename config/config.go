@@ -137,10 +137,8 @@ func (r *Reader[C]) SetDefault(key string, value any) {
 }
 
 // ReadConfig is a convenience method to read the environment specific config
-// file and merge pre-evaluated environment values on fields marked with `env`
-// tags. The context is string is only used to distinguish different calls in
-// case of a failure loading the config file and pre-evaluating environment
-// values.
+// file. The context string is only used to distinguish different calls in
+// case of a failure loading the config file.
 func (r *Reader[C]) ReadConfig(context string) *Reader[C] {
 	if err := r.ReadInConfig(); err != nil {
 		err := NewErrConfig("loading file", context, err)
@@ -152,6 +150,13 @@ func (r *Reader[C]) ReadConfig(context string) *Reader[C] {
 		}
 	}
 
+	return r
+}
+
+// MergeConfig merges pre-evaluated environment values on fields marked with
+// `env` tags. The context string is only used to distinguish different calls
+// in case of a failures parsing the environment variables.
+func (r *Reader[C]) MergeConfig(context string) *Reader[C] {
 	err := reflect.NewTagWalker("env", "mapstructure", false,
 		reflect.NewEnvParser(r.Get).Parse, r.setEnvDefault,
 	).Walk("", new(C))
@@ -173,7 +178,8 @@ func (r *Reader[C]) ReadConfig(context string) *Reader[C] {
 // to distinguish different calls in case of a panic created by failures while
 // unmarshalling the config.
 //
-// Note: Fields declared with `env` tags are pre-evaluated while reading the config.
+// Note: Fields declared with `env` tags are pre-evaluated while merging the
+// config using `MergeConfig`.
 func (r *Reader[C]) GetConfig(context string) *C {
 	config := new(C)
 	if err := r.Unmarshal(config); err != nil {
@@ -207,5 +213,5 @@ func (r *Reader[C]) setEnvDefault(path string, value any) {
 // calls in case of a panic created by failures loading the config file or
 // umarshalling the config.
 func (r *Reader[C]) LoadConfig(context string) *C {
-	return r.ReadConfig(context).GetConfig(context)
+	return r.ReadConfig(context).MergeConfig(context).GetConfig(context)
 }
